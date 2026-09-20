@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    html {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        font-size: 15px;
+        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+        @apply text-gray-800 bg-gray-50;
+        letter-spacing: -0.012em;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        letter-spacing: -0.02em;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="number"],
+    input[type="password"],
+    input[type="date"],
+    input[type="tel"],
+    select,
+    textarea {
+        @apply rounded-xl border-gray-300 text-sm text-gray-900 shadow-none;
+        @apply focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500;
+    }
+}
