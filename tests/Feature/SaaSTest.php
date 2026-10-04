@@ -8,7 +8,10 @@ use App\Models\Plan;
 use App\Models\Subscription;
 use App\Models\SubscriptionInvoice;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 /**
@@ -32,16 +35,16 @@ class SaaSTest extends TestCase
     private function createPlan(string $slug, array $overrides = []): Plan
     {
         return Plan::create(array_merge([
-            'name'                 => ucfirst($slug),
-            'slug'                 => $slug,
-            'description'          => 'Test plan',
-            'price'                => 0,
-            'billing_period'       => 'monthly',
+            'name' => ucfirst($slug),
+            'slug' => $slug,
+            'description' => 'Test plan',
+            'price' => 0,
+            'billing_period' => 'monthly',
             'max_orders_per_month' => null,
-            'max_employees'        => null,
-            'features'             => [],
-            'is_popular'           => false,
-            'is_active'            => true,
+            'max_employees' => null,
+            'features' => [],
+            'is_popular' => false,
+            'is_active' => true,
         ], $overrides));
     }
 
@@ -53,7 +56,7 @@ class SaaSTest extends TestCase
     private function createSuperAdmin(): User
     {
         return User::factory()->create([
-            'role'  => User::ROLE_SUPERADMIN,
+            'role' => User::ROLE_SUPERADMIN,
             'email' => 'sa@test.test',
         ]);
     }
@@ -61,26 +64,26 @@ class SaaSTest extends TestCase
     private function subscribeOwner(User $owner, Plan $plan, string $status = Subscription::STATUS_ACTIVE): Subscription
     {
         return Subscription::create([
-            'user_id'        => $owner->id,
-            'plan_id'        => $plan->id,
-            'status'         => $status,
-            'starts_at'      => now(),
-            'ends_at'        => $status === Subscription::STATUS_ACTIVE ? now()->addMonth() : null,
-            'trial_ends_at'  => $status === Subscription::STATUS_TRIALING ? now()->addDays(14) : null,
+            'user_id' => $owner->id,
+            'plan_id' => $plan->id,
+            'status' => $status,
+            'starts_at' => now(),
+            'ends_at' => $status === Subscription::STATUS_ACTIVE ? now()->addMonth() : null,
+            'trial_ends_at' => $status === Subscription::STATUS_TRIALING ? now()->addDays(14) : null,
         ]);
     }
 
     private function makeOrder(User $owner, Customer $customer, string $orderNumber = 'ORD-0001'): Order
     {
         return Order::create([
-            'user_id'        => $owner->id,
-            'customer_id'    => $customer->id,
-            'order_number'   => $orderNumber,
-            'name'           => 'Test Order',
-            'quantity'       => 10,
+            'user_id' => $owner->id,
+            'customer_id' => $customer->id,
+            'order_number' => $orderNumber,
+            'name' => 'Test Order',
+            'quantity' => 10,
             'price_per_unit' => 5000,
-            'total_amount'   => 50000,
-            'status'         => 'new',
+            'total_amount' => 50000,
+            'status' => 'new',
         ]);
     }
 
@@ -101,16 +104,16 @@ class SaaSTest extends TestCase
         $orderB = $this->makeOrder($tenantB, $customerB, 'ORD-0001');
 
         $this->assertDatabaseHas('orders', [
-            'user_id'      => $tenantA->id,
+            'user_id' => $tenantA->id,
             'order_number' => 'ORD-0001',
         ]);
         $this->assertDatabaseHas('orders', [
-            'user_id'      => $tenantB->id,
+            'user_id' => $tenantB->id,
             'order_number' => 'ORD-0001',
         ]);
 
         // Tapi dalam satu toko, nomor order harus unik
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
         $this->makeOrder($tenantA, $customerA, 'ORD-0001');
     }
 
@@ -122,20 +125,21 @@ class SaaSTest extends TestCase
     {
         // Buat plan Pro agar trial bisa diberikan
         $this->createPlan('pro', [
-            'name'  => 'Pro Juragan',
+            'name' => 'Pro Juragan',
             'price' => 49000,
         ]);
 
         $response = $this->post('/register', [
-            'name'                  => 'Pemilik Baru',
-            'business_name'         => 'Toko Baru Sablon',
-            'phone'                 => '081200001111',
-            'email'                 => 'pemilik@baru.test',
-            'password'              => 'password123',
+            'name' => 'Pemilik Baru',
+            'business_name' => 'Toko Baru Sablon',
+            'phone' => '081200001111',
+            'email' => 'pemilik@baru.test',
+            'password' => 'password123',
             'password_confirmation' => 'password123',
+            'terms' => '1',
         ]);
 
-        $response->assertRedirect('/dashboard');
+        $response->assertRedirect('/onboarding');
         $this->assertAuthenticated();
 
         $user = User::where('email', 'pemilik@baru.test')->first();
@@ -156,11 +160,11 @@ class SaaSTest extends TestCase
     public function test_monthly_order_limit_is_enforced_for_starter_plan(): void
     {
         $starterPlan = $this->createPlan('starter', [
-            'name'                 => 'Starter',
+            'name' => 'Starter',
             'max_orders_per_month' => 3, // batas kecil untuk test
         ]);
 
-        $owner    = $this->createOwner();
+        $owner = $this->createOwner();
         $this->subscribeOwner($owner, $starterPlan);
         $customer = Customer::create(['user_id' => $owner->id, 'name' => 'Pelanggan Test']);
 
@@ -178,12 +182,12 @@ class SaaSTest extends TestCase
         $response->assertSessionHas('error');
 
         $response2 = $this->actingAs($owner)->post(route('orders.store'), [
-            'customer_id'    => $customer->id,
-            'name'           => 'Order Melebihi Kuota',
-            'quantity'       => 10,
+            'customer_id' => $customer->id,
+            'name' => 'Order Melebihi Kuota',
+            'quantity' => 10,
             'price_per_unit' => 5000,
-            'total_amount'   => 50000,
-            'status'         => 'new',
+            'total_amount' => 50000,
+            'status' => 'new',
         ]);
         $response2->assertRedirect(route('orders.index'));
         $response2->assertSessionHas('error');
@@ -197,7 +201,7 @@ class SaaSTest extends TestCase
     public function test_employee_limit_is_enforced_for_starter_plan(): void
     {
         $starterPlan = $this->createPlan('starter', [
-            'name'          => 'Starter',
+            'name' => 'Starter',
             'max_employees' => 1, // maks 1 staf
         ]);
 
@@ -206,10 +210,10 @@ class SaaSTest extends TestCase
 
         // Tambah 1 staf (sampai batas)
         User::create([
-            'name'     => 'Staf Pertama',
-            'email'    => 'staf1@test.test',
+            'name' => 'Staf Pertama',
+            'email' => 'staf1@test.test',
             'password' => bcrypt('password'),
-            'role'     => User::ROLE_ADMIN_CS,
+            'role' => User::ROLE_ADMIN_CS,
             'owner_id' => $owner->id,
         ]);
 
@@ -217,9 +221,9 @@ class SaaSTest extends TestCase
 
         // Coba tambah staf ke-2 via HTTP → harus ditolak
         $response = $this->actingAs($owner)->post(route('employees.store'), [
-            'name'     => 'Staf Kedua Gagal',
-            'email'    => 'staf2@test.test',
-            'role'     => User::ROLE_PRODUCTION,
+            'name' => 'Staf Kedua Gagal',
+            'email' => 'staf2@test.test',
+            'role' => User::ROLE_PRODUCTION,
             'password' => 'password123',
         ]);
 
@@ -264,15 +268,20 @@ class SaaSTest extends TestCase
 
     public function test_subscription_payment_submission_and_superadmin_approval(): void
     {
-        $proPlan    = $this->createPlan('pro', ['name' => 'Pro Juragan', 'price' => 49000]);
-        $owner      = $this->createOwner();
+        Storage::fake('public');
+        config()->set('orderflow.billing.accounts.0.number', '1234567890');
+        config()->set('orderflow.billing.accounts.0.holder', 'PT OrderFlow Test');
+
+        $proPlan = $this->createPlan('pro', ['name' => 'Pro Juragan', 'price' => 49000]);
+        $owner = $this->createOwner();
         $superAdmin = $this->createSuperAdmin();
 
         // Owner submit konfirmasi pembayaran (tanpa file upload di test)
         $response = $this->actingAs($owner)->post(route('billing.confirm'), [
-            'plan_id'        => $proPlan->id,
+            'plan_id' => $proPlan->id,
             'payment_method' => 'Transfer BCA',
-            'notes'          => 'Transfer dari rekening a.n. Test Owner',
+            'payment_proof' => UploadedFile::fake()->create('transfer.pdf', 100, 'application/pdf'),
+            'notes' => 'Transfer dari rekening a.n. Test Owner',
         ]);
 
         $response->assertRedirect(route('billing.index'));
@@ -308,7 +317,7 @@ class SaaSTest extends TestCase
 
     public function test_owner_can_access_billing_page(): void
     {
-        $plan  = $this->createPlan('pro', ['name' => 'Pro Juragan', 'price' => 49000]);
+        $plan = $this->createPlan('pro', ['name' => 'Pro Juragan', 'price' => 49000]);
         $owner = $this->createOwner();
         $this->subscribeOwner($owner, $plan);
 
@@ -323,8 +332,8 @@ class SaaSTest extends TestCase
 
     public function test_unlimited_plan_never_blocks_order_creation(): void
     {
-        $proPlan  = $this->createPlan('pro', ['name' => 'Pro', 'max_orders_per_month' => null]);
-        $owner    = $this->createOwner();
+        $proPlan = $this->createPlan('pro', ['name' => 'Pro', 'max_orders_per_month' => null]);
+        $owner = $this->createOwner();
         $this->subscribeOwner($owner, $proPlan);
         $customer = Customer::create(['user_id' => $owner->id, 'name' => 'Pelanggan Pro']);
 
@@ -343,9 +352,9 @@ class SaaSTest extends TestCase
     public function test_superadmin_can_update_tenant_subscription(): void
     {
         $starterPlan = $this->createPlan('starter', ['name' => 'Starter', 'price' => 0]);
-        $proPlan     = $this->createPlan('pro', ['name' => 'Pro Juragan', 'price' => 49000]);
-        $owner       = $this->createOwner();
-        $superAdmin  = $this->createSuperAdmin();
+        $proPlan = $this->createPlan('pro', ['name' => 'Pro Juragan', 'price' => 49000]);
+        $owner = $this->createOwner();
+        $superAdmin = $this->createSuperAdmin();
 
         $this->subscribeOwner($owner, $starterPlan);
 
@@ -353,8 +362,8 @@ class SaaSTest extends TestCase
         $response = $this->actingAs($superAdmin)->post(
             route('admin.tenants.subscription', $owner),
             [
-                'plan_id'     => $proPlan->id,
-                'status'      => Subscription::STATUS_ACTIVE,
+                'plan_id' => $proPlan->id,
+                'status' => Subscription::STATUS_ACTIVE,
                 'extend_days' => 30,
             ]
         );

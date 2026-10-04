@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Middleware\EnsureActiveSubscription;
+use App\Http\Middleware\SetLocale;
+use App\Http\Middleware\SuperAdminMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -12,8 +15,13 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'superadmin' => \App\Http\Middleware\SuperAdminMiddleware::class,
-            'subscribed' => \App\Http\Middleware\EnsureActiveSubscription::class,
+            'superadmin' => SuperAdminMiddleware::class,
+            'subscribed' => EnsureActiveSubscription::class,
+        ]);
+
+        $middleware->web(append: [
+            SetLocale::class,
+            \App\Http\Middleware\SecurityHeaders::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

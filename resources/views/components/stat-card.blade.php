@@ -34,7 +34,7 @@
     @if($href)
         <div class="mt-auto pt-3 border-t border-gray-100">
             <a href="{{ $href }}" class="inline-flex items-center gap-1 text-xs font-semibold {{ $cfg['link'] }} hover:underline group">
-                Lihat daftar
+                {{ __('Lihat daftar') }}
                 <svg class="w-3 h-3 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
                 </svg>

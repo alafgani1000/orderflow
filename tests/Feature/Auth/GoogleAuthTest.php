@@ -25,16 +25,16 @@ class GoogleAuthTest extends TestCase
     private function createPlan(string $slug = 'pro'): Plan
     {
         return Plan::create([
-            'name'                 => 'Pro Juragan',
-            'slug'                 => $slug,
-            'description'          => 'Paket Pro',
-            'price'                => 49000,
-            'billing_period'       => 'monthly',
+            'name' => 'Pro Juragan',
+            'slug' => $slug,
+            'description' => 'Paket Pro',
+            'price' => 49000,
+            'billing_period' => 'monthly',
             'max_orders_per_month' => null,
-            'max_employees'        => null,
-            'features'             => [],
-            'is_popular'           => true,
-            'is_active'            => true,
+            'max_employees' => null,
+            'features' => [],
+            'is_popular' => true,
+            'is_active' => true,
         ]);
     }
 
@@ -65,7 +65,7 @@ class GoogleAuthTest extends TestCase
 
         $response = $this->get(route('auth.google.callback'));
 
-        $response->assertRedirect(route('dashboard'));
+        $response->assertRedirect(route('onboarding.show'));
         $this->assertAuthenticated();
 
         // Cek user terdaftar di database
@@ -76,6 +76,9 @@ class GoogleAuthTest extends TestCase
         $this->assertEquals('https://lh3.googleusercontent.com/avatar/test.png', $user->avatar);
         $this->assertEquals(User::ROLE_OWNER, $user->role);
         $this->assertNotNull($user->email_verified_at);
+        $this->assertNotNull($user->terms_accepted_at);
+        $this->assertSame(config('orderflow.legal.terms_version'), $user->terms_version);
+        $this->assertSame(config('orderflow.legal.privacy_version'), $user->privacy_version);
 
         // Cek subscription trial 14 hari
         $subscription = $user->subscription;
@@ -87,10 +90,10 @@ class GoogleAuthTest extends TestCase
     public function test_google_callback_logs_in_existing_google_user(): void
     {
         $existingUser = User::factory()->create([
-            'email'     => 'existing@gmail.com',
+            'email' => 'existing@gmail.com',
             'google_id' => 'google-existing-999',
-            'avatar'    => 'https://example.com/old-avatar.png',
-            'role'      => User::ROLE_OWNER,
+            'avatar' => 'https://example.com/old-avatar.png',
+            'role' => User::ROLE_OWNER,
         ]);
 
         $abstractUser = Mockery::mock(SocialiteUser::class);
@@ -119,9 +122,9 @@ class GoogleAuthTest extends TestCase
     {
         // User yang sebelumnya daftar dengan email biasa tanpa google_id
         $manualUser = User::factory()->create([
-            'email'     => 'manual@toko.com',
+            'email' => 'manual@toko.com',
             'google_id' => null,
-            'role'      => User::ROLE_OWNER,
+            'role' => User::ROLE_OWNER,
         ]);
 
         $abstractUser = Mockery::mock(SocialiteUser::class);

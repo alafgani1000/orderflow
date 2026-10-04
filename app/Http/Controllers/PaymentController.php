@@ -14,34 +14,34 @@ class PaymentController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        if (!$user->canViewFinances()) {
-            abort(403, 'Anda tidak memiliki hak akses untuk melihat data pembayaran.');
+        if (! $user->canViewFinances()) {
+            abort(403, __('Anda tidak memiliki hak akses untuk melihat data pembayaran.'));
         }
 
         $storeOwnerId = $user->getStoreOwnerId();
 
-        $query = Payment::whereHas('order', fn($q) => $q->where('user_id', $storeOwnerId))
+        $query = Payment::whereHas('order', fn ($q) => $q->where('user_id', $storeOwnerId))
             ->with(['order.customer'])
             ->orderByDesc('payment_date');
 
         if ($search = $request->input('search')) {
             $query->whereHas('order', function ($q) use ($search) {
                 $q->where('order_number', 'like', "%{$search}%")
-                  ->orWhere('name', 'like', "%{$search}%")
-                  ->orWhereHas('customer', fn($cq) => $cq->where('name', 'like', "%{$search}%"));
+                    ->orWhere('name', 'like', "%{$search}%")
+                    ->orWhereHas('customer', fn ($cq) => $cq->where('name', 'like', "%{$search}%"));
             });
         }
 
-        $payments    = $query->paginate(20)->withQueryString();
-        
-        $grossPayments = Payment::whereHas('order', fn($q) => $q->where('user_id', $storeOwnerId))
-            ->where(fn($q) => $q->where('type', 'payment')->orWhereNull('type'))
+        $payments = $query->paginate(20)->withQueryString();
+
+        $grossPayments = Payment::whereHas('order', fn ($q) => $q->where('user_id', $storeOwnerId))
+            ->where(fn ($q) => $q->where('type', 'payment')->orWhereNull('type'))
             ->sum('amount');
-            
-        $totalRefunds = Payment::whereHas('order', fn($q) => $q->where('user_id', $storeOwnerId))
+
+        $totalRefunds = Payment::whereHas('order', fn ($q) => $q->where('user_id', $storeOwnerId))
             ->where('type', 'refund')
             ->sum('amount');
-            
+
         $totalAmount = $grossPayments - $totalRefunds;
 
         return view('payments.index', compact('payments', 'totalAmount', 'grossPayments', 'totalRefunds'));
@@ -52,16 +52,16 @@ class PaymentController extends Controller
         $user = auth()->user();
         $this->authorize('update', $order);
 
-        if (!$user->canViewFinances()) {
-            abort(403, 'Hanya Kasir / Owner yang dapat mencatat pembayaran.');
+        if (! $user->canViewFinances()) {
+            abort(403, __('Hanya Kasir / Owner yang dapat mencatat pembayaran.'));
         }
 
         $validated = $request->validate([
-            'type'         => 'nullable|in:payment,refund',
-            'amount'       => 'required|numeric|min:1',
+            'type' => 'nullable|in:payment,refund',
+            'amount' => 'required|numeric|min:1',
             'payment_date' => 'required|date',
-            'method'       => 'required|in:cash,transfer,qris,other',
-            'notes'        => 'nullable|string|max:500',
+            'method' => 'required|in:cash,transfer,qris,other',
+            'notes' => 'nullable|string|max:500',
         ]);
 
         $type = $validated['type'] ?? 'payment';
@@ -71,12 +71,15 @@ class PaymentController extends Controller
         // Validasi khusus refund
         if ($type === 'refund') {
             if ($order->total_paid <= 0) {
-                return back()->withErrors(['amount' => 'Tidak dapat melakukan pengembalian dana karena pesanan ini belum memiliki pembayaran masuk.'])->withInput();
+                return back()->withErrors(['amount' => __('Tidak dapat melakukan pengembalian dana karena pesanan ini belum memiliki pembayaran masuk.')])->withInput();
             }
 
             if ($validated['amount'] > $order->total_paid) {
                 return back()->withErrors([
-                    'amount' => 'Nominal pengembalian dana (Rp ' . number_format($validated['amount'], 0, ',', '.') . ') melebihi total pembayaran yang telah diterima (Maksimal: Rp ' . number_format($order->total_paid, 0, ',', '.') . ').'
+                    'amount' => __('Nominal pengembalian dana (Rp :amount) melebihi total pembayaran yang telah diterima (Maksimal: Rp :maximum).', [
+                        'amount' => number_format($validated['amount'], 0, ',', '.'),
+                        'maximum' => number_format($order->total_paid, 0, ',', '.'),
+                    ]),
                 ])->withInput();
             }
 
@@ -84,7 +87,7 @@ class PaymentController extends Controller
             $waUrl = $this->whatsAppService->refundUrl($order, $validated['amount'], $validated['method']);
 
             return redirect()->route('orders.show', $order)
-                ->with('success', 'Pengembalian dana (refund) sebesar Rp ' . number_format($validated['amount'], 0, ',', '.') . ' berhasil dicatat.')
+                ->with('success', __('Pengembalian dana (refund) sebesar Rp :amount berhasil dicatat.', ['amount' => number_format($validated['amount'], 0, ',', '.')]))
                 ->with('wa_refund_url', $waUrl)
                 ->with('wa_payment_url', $waUrl);
         }
@@ -93,7 +96,7 @@ class PaymentController extends Controller
         $waUrl = $this->whatsAppService->paymentUrl($order, $validated['amount']);
 
         return redirect()->route('orders.show', $order)
-            ->with('success', 'Pembayaran berhasil dicatat.')
+            ->with('success', __('Pembayaran berhasil dicatat.'))
             ->with('wa_payment_url', $waUrl);
     }
 
@@ -102,8 +105,8 @@ class PaymentController extends Controller
         $user = auth()->user();
         $this->authorize('update', $order);
 
-        if (!$user->canViewFinances()) {
-            abort(403, 'Anda tidak memiliki hak akses untuk menghapus pembayaran.');
+        if (! $user->canViewFinances()) {
+            abort(403, __('Anda tidak memiliki hak akses untuk menghapus pembayaran.'));
         }
 
         if ($payment->order_id !== $order->id) {
@@ -112,6 +115,6 @@ class PaymentController extends Controller
 
         $payment->delete();
 
-        return back()->with('success', 'Pembayaran berhasil dihapus.');
+        return back()->with('success', __('Pembayaran berhasil dihapus.'));
     }
 }

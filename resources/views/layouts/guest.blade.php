@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="{{ app()->getLocale() }}">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'OrderFlow') }} — Kelola Pesanan Custom & WhatsApp</title>
+        <title>{{ config('app.name', 'OrderFlow') }} — {{ __('Kelola Pesanan Custom & WhatsApp') }}</title>
         <x-favicon />
 
         <!-- Fonts: Inter -->
@@ -37,7 +37,11 @@
                 </div>
 
                 <div class="mt-6 text-center text-xs text-gray-400">
-                    OrderFlow &copy; {{ date('Y') }} — Solusi Kelola Pesanan WhatsApp
+                    OrderFlow &copy; {{ date('Y') }} — {{ __('Solusi Kelola Pesanan WhatsApp') }}
+                    <div class="mt-1.5 flex items-center justify-center gap-3">
+                        <a href="{{ route('terms') }}" class="hover:text-indigo-600">{{ __('Syarat') }}</a>
+                        <a href="{{ route('privacy') }}" class="hover:text-indigo-600">{{ __('Privasi') }}</a>
+                    </div>
                 </div>
             </div>
         @endif

@@ -13,8 +13,8 @@ class ReportController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        if (!$user->canViewFinances()) {
-            abort(403, 'Anda tidak memiliki akses ke laporan keuangan.');
+        if (! $user->canViewFinances()) {
+            abort(403, __('Anda tidak memiliki akses ke laporan keuangan.'));
         }
 
         $storeOwnerId = $user->getStoreOwnerId();
@@ -24,25 +24,25 @@ class ReportController extends Controller
         $ordersQuery = Order::where('user_id', $storeOwnerId)
             ->whereBetween('created_at', [$startDate, $endDate]);
 
-        $totalOmset      = (clone $ordersQuery)->sum('total_amount');
+        $totalOmset = (clone $ordersQuery)->sum('total_amount');
         $totalOrdersCount = (clone $ordersQuery)->count();
-        $completedCount  = (clone $ordersQuery)->whereIn('status', ['completed', 'delivered'])->count();
+        $completedCount = (clone $ordersQuery)->whereIn('status', ['completed', 'delivered'])->count();
 
         // Payments received in period
-        $paymentsQuery = Payment::whereHas('order', fn($q) => $q->where('user_id', $storeOwnerId))
+        $paymentsQuery = Payment::whereHas('order', fn ($q) => $q->where('user_id', $storeOwnerId))
             ->whereBetween('payment_date', [$startDate->toDateString(), $endDate->toDateString()]);
 
         $totalCashReceived = (clone $paymentsQuery)->sum('amount');
 
         // Unpaid receivables for orders created in this period
-        $totalUnpaidReceivables = (clone $ordersQuery)->where('status', '!=', 'cancelled')->get()->sum(fn($o) => $o->remaining_amount);
+        $totalUnpaidReceivables = (clone $ordersQuery)->where('status', '!=', 'cancelled')->get()->sum(fn ($o) => $o->remaining_amount);
 
         // Payment method breakdown
         $paymentMethods = [
-            'cash'     => (clone $paymentsQuery)->where('method', 'cash')->sum('amount'),
+            'cash' => (clone $paymentsQuery)->where('method', 'cash')->sum('amount'),
             'transfer' => (clone $paymentsQuery)->where('method', 'transfer')->sum('amount'),
-            'qris'     => (clone $paymentsQuery)->where('method', 'qris')->sum('amount'),
-            'other'    => (clone $paymentsQuery)->where('method', 'other')->sum('amount'),
+            'qris' => (clone $paymentsQuery)->where('method', 'qris')->sum('amount'),
+            'other' => (clone $paymentsQuery)->where('method', 'other')->sum('amount'),
         ];
 
         // Orders list
@@ -69,8 +69,8 @@ class ReportController extends Controller
     public function export(Request $request): StreamedResponse
     {
         $user = auth()->user();
-        if (!$user->canViewFinances()) {
-            abort(403, 'Anda tidak memiliki akses export laporan.');
+        if (! $user->canViewFinances()) {
+            abort(403, __('Anda tidak memiliki akses export laporan.'));
         }
 
         $storeOwnerId = $user->getStoreOwnerId();
@@ -83,7 +83,7 @@ class ReportController extends Controller
             ->get();
 
         $businessName = $user->business_name ?: 'OrderFlow';
-        $filename = "Laporan-{$businessName}-" . $startDate->format('Ymd') . '-' . $endDate->format('Ymd') . '.csv';
+        $filename = __('Laporan')."-{$businessName}-".$startDate->format('Ymd').'-'.$endDate->format('Ymd').'.csv';
 
         return response()->streamDownload(function () use ($orders) {
             $handle = fopen('php://output', 'w');
@@ -95,25 +95,26 @@ class ReportController extends Controller
             fputcsv($handle, [
                 'No',
                 'No. Order',
-                'Tanggal Pesan',
-                'Target Selesai',
-                'Nama Pelanggan',
-                'WhatsApp Pelanggan',
-                'Nama Pesanan',
-                'Jumlah (Pcs)',
-                'Rincian Ukuran',
-                'Harga Satuan (Rp)',
-                'Total Tagihan (Rp)',
-                'Total Terbayar (Rp)',
-                'Sisa Tagihan (Rp)',
-                'Status Pengerjaan',
-                'Status Pembayaran',
+                __('Tanggal Pesan'),
+                __('Target Selesai'),
+                __('Nama Pelanggan'),
+                __('WhatsApp Pelanggan'),
+                __('Nama Pesanan'),
+                __('Jumlah (Pcs)'),
+                __('Rincian Ukuran'),
+                __('Harga Satuan (Rp)'),
+                __('Total Tagihan (Rp)'),
+                __('Total Terbayar (Rp)'),
+                __('Sisa Tagihan (Rp)'),
+                __('Status Pengerjaan'),
+                __('Status Pembayaran'),
             ]);
 
             $sanitize = function ($val) {
                 if (is_string($val) && strlen($val) > 0 && in_array($val[0], ['=', '+', '-', '@', "\t", "\r"])) {
-                    return "'" . $val;
+                    return "'".$val;
                 }
+
                 return $val;
             };
 
@@ -133,14 +134,14 @@ class ReportController extends Controller
                     $order->total_amount,
                     $order->total_paid,
                     $order->remaining_amount,
-                    $order->status_label,
-                    $order->is_paid_off ? 'Lunas' : 'Belum Lunas',
+                    __($order->status_label),
+                    $order->is_paid_off ? __('Lunas') : __('Belum Lunas'),
                 ]));
             }
 
             fclose($handle);
         }, $filename, [
-            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         ]);
     }
@@ -152,27 +153,27 @@ class ReportController extends Controller
         switch ($period) {
             case 'last_month':
                 $start = Carbon::now()->subMonth()->startOfMonth();
-                $end   = Carbon::now()->subMonth()->endOfMonth();
-                $label = 'Bulan Lalu (' . $start->translatedFormat('F Y') . ')';
+                $end = Carbon::now()->subMonth()->endOfMonth();
+                $label = __('Bulan Lalu (:period)', ['period' => $start->translatedFormat('F Y')]);
                 break;
 
             case 'this_year':
                 $start = Carbon::now()->startOfYear();
-                $end   = Carbon::now()->endOfYear();
-                $label = 'Tahun Ini (' . $start->format('Y') . ')';
+                $end = Carbon::now()->endOfYear();
+                $label = __('Tahun Ini (:year)', ['year' => $start->format('Y')]);
                 break;
 
             case 'custom':
                 $start = $request->input('start_date') ? Carbon::parse($request->input('start_date'))->startOfDay() : Carbon::now()->startOfMonth();
-                $end   = $request->input('end_date') ? Carbon::parse($request->input('end_date'))->endOfDay() : Carbon::now()->endOfDay();
-                $label = $start->format('d/m/Y') . ' - ' . $end->format('d/m/Y');
+                $end = $request->input('end_date') ? Carbon::parse($request->input('end_date'))->endOfDay() : Carbon::now()->endOfDay();
+                $label = $start->format('d/m/Y').' - '.$end->format('d/m/Y');
                 break;
 
             case 'this_month':
             default:
                 $start = Carbon::now()->startOfMonth();
-                $end   = Carbon::now()->endOfMonth();
-                $label = 'Bulan Ini (' . $start->translatedFormat('F Y') . ')';
+                $end = Carbon::now()->endOfMonth();
+                $label = __('Bulan Ini (:period)', ['period' => $start->translatedFormat('F Y')]);
                 break;
         }
 

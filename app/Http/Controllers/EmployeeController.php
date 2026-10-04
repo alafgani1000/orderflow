@@ -15,32 +15,34 @@ class EmployeeController extends Controller
     public function store(Request $request)
     {
         $currentUser = auth()->user();
-        if (!$currentUser->isOwner()) {
-            abort(403, 'Hanya pemilik toko yang dapat mengelola staf karyawan.');
+        if (! $currentUser->isOwner()) {
+            abort(403, __('Hanya pemilik toko yang dapat mengelola staf karyawan.'));
         }
 
-        if (!$currentUser->canAddEmployee()) {
-            return back()->with('error', 'Batas kuota akun staf untuk paket Anda telah tercapai. Silakan upgrade ke paket Pro atau Enterprise untuk menambah staf.');
+        if (! $currentUser->canAddEmployee()) {
+            return back()->with('error', __('Batas kuota akun staf untuk paket Anda telah tercapai. Silakan upgrade ke paket Pro atau Enterprise untuk menambah staf.'));
         }
 
         $validated = $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|string|email|max:255|unique:users,email',
-            'role'     => 'required|in:admin_cs,production',
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email',
+            'role' => 'required|in:admin_cs,production',
             'password' => ['required', 'string', Password::min(8)],
         ]);
 
         User::create([
-            'name'          => $validated['name'],
-            'email'         => $validated['email'],
-            'password'      => Hash::make($validated['password']),
-            'role'          => $validated['role'],
-            'owner_id'      => $currentUser->id,
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'role' => $validated['role'],
+            'owner_id' => $currentUser->id,
             'business_name' => $currentUser->business_name,
-            'phone'         => null,
+            'phone' => null,
+            'locale' => $currentUser->locale ?? config('app.locale'),
+            'email_verified_at' => now(),
         ]);
 
-        return back()->with('success', 'Akun staf berhasil dibuat dan dapat langsung login.');
+        return back()->with('success', __('Akun staf berhasil dibuat dan dapat langsung login.'));
     }
 
     /**
@@ -49,12 +51,12 @@ class EmployeeController extends Controller
     public function destroy(User $employee)
     {
         $currentUser = auth()->user();
-        if (!$currentUser->isOwner() || $employee->owner_id !== $currentUser->id) {
-            abort(403, 'Anda tidak memiliki hak untuk menghapus akun staf ini.');
+        if (! $currentUser->isOwner() || $employee->owner_id !== $currentUser->id) {
+            abort(403, __('Anda tidak memiliki hak untuk menghapus akun staf ini.'));
         }
 
         $employee->delete();
 
-        return back()->with('success', 'Akun staf berhasil dihapus dari sistem toko.');
+        return back()->with('success', __('Akun staf berhasil dihapus dari sistem toko.'));
     }
 }

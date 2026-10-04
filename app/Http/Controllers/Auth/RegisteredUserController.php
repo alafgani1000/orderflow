@@ -33,32 +33,37 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'name'          => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255'],
             'business_name' => ['nullable', 'string', 'max:255'],
-            'phone'         => ['nullable', 'string', 'max:20'],
-            'email'         => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password'      => ['required', 'confirmed', Rules\Password::defaults()],
+            'phone' => ['nullable', 'string', 'max:20'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'terms' => ['accepted'],
         ]);
 
         $user = User::create([
-            'name'          => $request->name,
+            'name' => $request->name,
             'business_name' => $request->business_name,
-            'phone'         => $request->phone,
-            'email'         => $request->email,
-            'password'      => Hash::make($request->password),
-            'role'          => User::ROLE_OWNER,
+            'phone' => $request->phone,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'role' => User::ROLE_OWNER,
+            'locale' => $request->session()->get('locale', config('app.locale')),
+            'terms_accepted_at' => now(),
+            'terms_version' => config('orderflow.legal.terms_version'),
+            'privacy_version' => config('orderflow.legal.privacy_version'),
         ]);
 
         // Berikan paket uji coba gratis (Free Trial 14 Hari)
         $defaultPlan = Plan::where('slug', 'pro')->first() ?? Plan::first();
         if ($defaultPlan) {
             Subscription::create([
-                'user_id'       => $user->id,
-                'plan_id'       => $defaultPlan->id,
-                'status'        => Subscription::STATUS_TRIALING,
-                'starts_at'     => now(),
+                'user_id' => $user->id,
+                'plan_id' => $defaultPlan->id,
+                'status' => Subscription::STATUS_TRIALING,
+                'starts_at' => now(),
                 'trial_ends_at' => now()->addDays(14),
-                'notes'         => 'Free trial 14 hari saat registrasi awal',
+                'notes' => 'Free trial 14 hari saat registrasi awal',
             ]);
         }
 
@@ -66,6 +71,6 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return redirect(route('dashboard', absolute: false));
+        return redirect(route('onboarding.show', absolute: false));
     }
 }

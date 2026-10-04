@@ -7,8 +7,8 @@
                 </svg>
             </a>
             <div>
-                <h1 class="text-xl font-bold text-gray-900">Edit Data Pelanggan</h1>
-                <p class="text-xs text-gray-500 mt-0.5">Perbarui kontak atau alamat {{ $customer->name }}.</p>
+                <h1 class="text-xl font-bold text-gray-900">{{ __('Edit Data Pelanggan') }}</h1>
+                <p class="text-xs text-gray-500 mt-0.5">{{ __('Perbarui kontak atau alamat :name.', ['name' => $customer->name]) }}</p>
             </div>
         </div>
     </x-slot>
@@ -16,7 +16,7 @@
     <div class="max-w-2xl mx-auto">
         <div class="bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-100">
-                <h2 class="text-sm font-bold text-gray-900">Informasi Pelanggan</h2>
+                <h2 class="text-sm font-bold text-gray-900">{{ __('Informasi Pelanggan') }}</h2>
             </div>
 
             <form method="POST" action="{{ route('customers.update', $customer) }}" class="p-6 space-y-4">
@@ -26,7 +26,7 @@
                 <!-- Nama -->
                 <div>
                     <label for="name" class="block text-sm font-semibold text-gray-700 mb-1.5">
-                        Nama Pelanggan / Usaha <span class="text-red-500">*</span>
+                        {{ __('Nama Pelanggan / Usaha') }} <span class="text-red-500">*</span>
                     </label>
                     <input 
                         type="text" 
@@ -44,7 +44,7 @@
                 <!-- Nomor WhatsApp -->
                 <div>
                     <label for="phone" class="block text-sm font-semibold text-gray-700 mb-1.5">
-                        Nomor WhatsApp
+                        {{ __('Nomor WhatsApp') }}
                     </label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-emerald-600">
@@ -68,7 +68,7 @@
                 <!-- Alamat -->
                 <div>
                     <label for="address" class="block text-sm font-semibold text-gray-700 mb-1.5">
-                        Alamat Pengiriman / Domisili
+                        {{ __('Alamat Pengiriman / Domisili') }}
                     </label>
                     <textarea 
                         id="address" 
@@ -81,7 +81,7 @@
                 <!-- Catatan Tambahan -->
                 <div>
                     <label for="notes" class="block text-sm font-semibold text-gray-700 mb-1.5">
-                        Catatan Khusus
+                        {{ __('Catatan Khusus') }}
                     </label>
                     <textarea 
                         id="notes" 
@@ -95,17 +95,17 @@
                 <div class="pt-4 border-t border-gray-100 flex items-center justify-between">
                     <button 
                         type="button" 
-                        onclick="if(confirm('Yakin ingin menghapus pelanggan ini beserta seluruh riwayatnya?')) document.getElementById('delete-form').submit();" 
+                        onclick='if(confirm(@js(__("Yakin ingin menghapus pelanggan ini beserta seluruh riwayatnya?")))) document.getElementById("delete-form").submit();'
                         class="px-4 py-2.5 rounded-xl border border-red-200 bg-red-50 text-red-600 text-sm font-semibold hover:bg-red-100 transition"
                     >
-                        Hapus Pelanggan
+                        {{ __('Hapus Pelanggan') }}
                     </button>
                     <div class="flex items-center gap-3">
                         <a href="{{ route('customers.show', $customer) }}" class="px-5 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-700 text-sm font-semibold hover:bg-gray-50 transition">
-                            Batal
+                            {{ __('Batal') }}
                         </a>
                         <button type="submit" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow-xs transition">
-                            Simpan Perubahan
+                            {{ __('Simpan Perubahan') }}
                         </button>
                     </div>
                 </div>

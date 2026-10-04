@@ -13,8 +13,8 @@ class SuperAdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!$request->user() || !$request->user()->isSuperAdmin()) {
-            abort(403, 'Akses terbatas untuk Super Admin Platform.');
+        if (! $request->user() || ! $request->user()->isSuperAdmin()) {
+            abort(403, __('Akses terbatas untuk Super Admin Platform.'));
         }
 
         return $next($request);

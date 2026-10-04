@@ -7,8 +7,8 @@
                 </svg>
             </a>
             <div>
-                <h1 class="text-xl font-bold text-gray-900">Tambah Pelanggan Baru</h1>
-                <p class="text-xs text-gray-500 mt-0.5">Catat informasi kontak untuk komunikasi dan update pesanan via WhatsApp.</p>
+                <h1 class="text-xl font-bold text-gray-900">{{ __('Tambah Pelanggan Baru') }}</h1>
+                <p class="text-xs text-gray-500 mt-0.5">{{ __('Catat informasi kontak untuk komunikasi dan update pesanan via WhatsApp.') }}</p>
             </div>
         </div>
     </x-slot>
@@ -16,7 +16,7 @@
     <div class="max-w-2xl mx-auto">
         <div class="bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-100">
-                <h2 class="text-sm font-bold text-gray-900">Informasi Kontak Pelanggan</h2>
+                <h2 class="text-sm font-bold text-gray-900">{{ __('Informasi Kontak Pelanggan') }}</h2>
             </div>
 
             <form method="POST" action="{{ route('customers.store') }}" class="p-6 space-y-4">
@@ -25,14 +25,14 @@
                 <!-- Nama -->
                 <div>
                     <label for="name" class="block text-sm font-semibold text-gray-700 mb-1.5">
-                        Nama Pelanggan / Usaha <span class="text-red-500">*</span>
+                        {{ __('Nama Pelanggan / Usaha') }} <span class="text-red-500">*</span>
                     </label>
                     <input 
                         type="text" 
                         id="name" 
                         name="name" 
                         value="{{ old('name') }}" 
-                        placeholder="Misal: Budi Santoso / CV Maju Lancar" 
+                        placeholder="{{ __('Misal: Budi Santoso / CV Maju Lancar') }}"
                         required 
                         class="w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 @error('name') border-red-400 @enderror"
                     >
@@ -44,7 +44,7 @@
                 <!-- Nomor WhatsApp -->
                 <div>
                     <label for="phone" class="block text-sm font-semibold text-gray-700 mb-1.5">
-                        Nomor WhatsApp
+                        {{ __('Nomor WhatsApp') }}
                     </label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-emerald-600">
@@ -61,7 +61,7 @@
                             class="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 @error('phone') border-red-400 @enderror"
                         >
                     </div>
-                    <p class="text-[11px] text-gray-400 mt-1">Dapat format 08xxx atau 628xxx, otomatis disesuaikan untuk link WhatsApp.</p>
+                    <p class="text-[11px] text-gray-400 mt-1">{{ __('Dapat format 08xxx atau 628xxx, otomatis disesuaikan untuk link WhatsApp.') }}</p>
                     @error('phone')
                         <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
                     @enderror
@@ -70,13 +70,13 @@
                 <!-- Alamat -->
                 <div>
                     <label for="address" class="block text-sm font-semibold text-gray-700 mb-1.5">
-                        Alamat Pengiriman / Domisili
+                        {{ __('Alamat Pengiriman / Domisili') }}
                     </label>
                     <textarea 
                         id="address" 
                         name="address" 
                         rows="2" 
-                        placeholder="Alamat lengkap pengiriman atau workshop pemesan..." 
+                        placeholder="{{ __('Alamat lengkap pengiriman atau workshop pemesan...') }}"
                         class="w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     >{{ old('address') }}</textarea>
                 </div>
@@ -84,13 +84,13 @@
                 <!-- Catatan Tambahan -->
                 <div>
                     <label for="notes" class="block text-sm font-semibold text-gray-700 mb-1.5">
-                        Catatan Khusus
+                        {{ __('Catatan Khusus') }}
                     </label>
                     <textarea 
                         id="notes" 
                         name="notes" 
                         rows="2" 
-                        placeholder="Misal: Langganan tetap, preferensi bahan tertentu, dll..." 
+                        placeholder="{{ __('Misal: Langganan tetap, preferensi bahan tertentu, dll...') }}"
                         class="w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     >{{ old('notes') }}</textarea>
                 </div>
@@ -98,10 +98,10 @@
                 <!-- Action Buttons -->
                 <div class="pt-3 border-t border-gray-100 flex items-center justify-end gap-3">
                     <a href="{{ route('customers.index') }}" class="px-5 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-700 text-sm font-semibold hover:bg-gray-50 transition">
-                        Batal
+                        {{ __('Batal') }}
                     </a>
                     <button type="submit" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow-xs transition">
-                        Simpan Pelanggan
+                        {{ __('Simpan Pelanggan') }}
                     </button>
                 </div>
             </form>

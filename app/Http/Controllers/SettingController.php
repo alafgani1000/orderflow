@@ -21,32 +21,40 @@ class SettingController extends Controller
         $user = auth()->user();
 
         $validated = $request->validate([
-            'name'          => 'required|string|max:255',
+            'name' => 'required|string|max:255',
             'business_name' => 'nullable|string|max:255',
-            'phone'         => 'nullable|string|max:20',
-            'email'         => 'required|email|unique:users,email,' . $user->id,
+            'phone' => 'nullable|string|max:20',
+            'business_address' => 'nullable|string|max:1000',
+            'business_bank_name' => 'nullable|required_with:business_bank_account,business_bank_holder|string|max:100',
+            'business_bank_account' => ['nullable', 'required_with:business_bank_name,business_bank_holder', 'string', 'max:100', 'regex:/^[0-9 .-]+$/'],
+            'business_bank_holder' => 'nullable|required_with:business_bank_name,business_bank_account|string|max:255',
+            'email' => 'required|email|unique:users,email,'.$user->id,
         ]);
 
         $user->update($validated);
 
-        return back()->with('success', 'Profil berhasil diperbarui.');
+        if ($user->isOwner() && filled($user->business_name) && filled($user->phone) && ! $user->onboarding_completed_at) {
+            $user->update(['onboarding_completed_at' => now()]);
+        }
+
+        return back()->with('success', __('Profil berhasil diperbarui.'));
     }
 
     public function updatePassword(Request $request)
     {
         $validated = $request->validate([
             'current_password' => 'required',
-            'password'         => ['required', 'confirmed', Password::min(8)],
+            'password' => ['required', 'confirmed', Password::min(8)],
         ]);
 
         $user = auth()->user();
 
-        if (!Hash::check($validated['current_password'], $user->password)) {
-            return back()->withErrors(['current_password' => 'Password saat ini tidak sesuai.']);
+        if (! Hash::check($validated['current_password'], $user->password)) {
+            return back()->withErrors(['current_password' => __('Password saat ini tidak sesuai.')]);
         }
 
         $user->update(['password' => $validated['password']]);
 
-        return back()->with('success', 'Password berhasil diubah.');
+        return back()->with('success', __('Password berhasil diubah.'));
     }
 }

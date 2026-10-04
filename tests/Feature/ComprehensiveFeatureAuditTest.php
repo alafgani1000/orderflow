@@ -128,6 +128,8 @@ class ComprehensiveFeatureAuditTest extends TestCase
      */
     public function test_order_file_attachment_workflow(): void
     {
+        $privateDisk = config('orderflow.storage.private_disk', 'local');
+        Storage::fake($privateDisk);
         Storage::fake('public');
 
         $owner = User::factory()->create(['role' => User::ROLE_OWNER]);
@@ -157,7 +159,7 @@ class ComprehensiveFeatureAuditTest extends TestCase
         $orderFile = OrderFile::where('order_id', $order->id)->first();
         $this->assertNotNull($orderFile);
         $this->assertSame('mockup_baju.pdf', $orderFile->file_name);
-        Storage::disk('public')->assertExists($orderFile->file_path);
+        Storage::disk($privateDisk)->assertExists($orderFile->file_path);
 
         // Download file
         $downloadResponse = $this->actingAs($owner)->get(route('orders.files.download', [$order, $orderFile]));
@@ -166,7 +168,7 @@ class ComprehensiveFeatureAuditTest extends TestCase
         // Delete file
         $deleteResponse = $this->actingAs($owner)->delete(route('orders.files.destroy', [$order, $orderFile]));
         $deleteResponse->assertRedirect();
-        Storage::disk('public')->assertMissing($orderFile->file_path);
+        Storage::disk($privateDisk)->assertMissing($orderFile->file_path);
         $this->assertDatabaseMissing('order_files', ['id' => $orderFile->id]);
     }
 

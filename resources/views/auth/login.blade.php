@@ -25,7 +25,7 @@
                         <span class="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60 animate-ping"></span>
                         <span class="relative inline-flex w-2 h-2 rounded-full bg-emerald-400"></span>
                     </span>
-                    Sistem siap digunakan
+                    {{ __('Sistem siap digunakan') }}
                 </div>
             </div>
 
@@ -34,15 +34,15 @@
                 <div class="max-w-xl">
                     <div class="inline-flex items-center gap-2 mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-300">
                         <span class="w-7 h-px bg-indigo-400"></span>
-                        Dibuat untuk bisnis custom
+                        {{ __('Dibuat untuk bisnis custom') }}
                     </div>
                     <h1 class="text-[2.5rem] xl:text-5xl font-black leading-[1.08] tracking-[-0.035em] text-white">
-                        Dari order masuk<br>
-                        sampai lunas,
-                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 via-violet-300 to-emerald-300">semuanya mengalir.</span>
+                        {{ __('Dari order masuk') }}<br>
+                        {{ __('sampai lunas,') }}
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 via-violet-300 to-emerald-300">{{ __('semuanya mengalir.') }}</span>
                     </h1>
                     <p class="mt-4 max-w-lg text-sm xl:text-[15px] leading-7 text-slate-300">
-                        Satu ruang kerja untuk menjaga pesanan, produksi, deadline, dan pembayaran tetap tersusun—tanpa kehilangan konteks dari WhatsApp.
+                        {{ __('Satu ruang kerja untuk menjaga pesanan, produksi, deadline, dan pembayaran tetap tersusun—tanpa kehilangan konteks dari WhatsApp.') }}
                     </p>
                 </div>
 
@@ -59,25 +59,25 @@
                                 </div>
                                 <div>
                                     <div class="flex items-center gap-2">
-                                        <span class="text-sm font-bold text-white">Kaos Komunitas — 120 pcs</span>
+                                        <span class="text-sm font-bold text-white">{{ __('Kaos Komunitas — 120 pcs') }}</span>
                                         <span class="rounded-md bg-white/[0.07] px-2 py-0.5 text-[9px] font-bold tracking-wide text-slate-300">ORD-0248</span>
                                     </div>
-                                    <p class="mt-1 text-[11px] text-slate-400">Nusantara Creative · Deadline 18 Sep</p>
+                                    <p class="mt-1 text-[11px] text-slate-400">Nusantara Creative · {{ __('Deadline 18 Sep') }}</p>
                                 </div>
                             </div>
-                            <span class="shrink-0 rounded-full border border-amber-300/20 bg-amber-400/10 px-2.5 py-1 text-[10px] font-bold text-amber-200">Produksi</span>
+                            <span class="shrink-0 rounded-full border border-amber-300/20 bg-amber-400/10 px-2.5 py-1 text-[10px] font-bold text-amber-200">{{ __('Produksi') }}</span>
                         </div>
 
                         <div class="mt-6 grid grid-cols-4 gap-2">
                             @foreach([
                                 ['label' => 'Order', 'done' => true],
-                                ['label' => 'Desain', 'done' => true],
-                                ['label' => 'Produksi', 'done' => false],
-                                ['label' => 'Selesai', 'done' => false],
+                                ['label' => __('Desain'), 'done' => true],
+                                ['label' => __('Produksi'), 'done' => false],
+                                ['label' => __('Selesai'), 'done' => false],
                             ] as $step)
                                 <div>
-                                    <div class="h-1.5 rounded-full {{ $step['done'] ? 'bg-emerald-400' : ($step['label'] === 'Produksi' ? 'bg-indigo-400' : 'bg-white/10') }}"></div>
-                                    <p class="mt-2 text-[10px] font-semibold {{ $step['done'] ? 'text-emerald-300' : ($step['label'] === 'Produksi' ? 'text-indigo-200' : 'text-slate-500') }}">{{ $step['label'] }}</p>
+                                    <div class="h-1.5 rounded-full {{ $step['done'] ? 'bg-emerald-400' : ($step['label'] === __('Produksi') ? 'bg-indigo-400' : 'bg-white/10') }}"></div>
+                                    <p class="mt-2 text-[10px] font-semibold {{ $step['done'] ? 'text-emerald-300' : ($step['label'] === __('Produksi') ? 'text-indigo-200' : 'text-slate-500') }}">{{ $step['label'] }}</p>
                                 </div>
                             @endforeach
                         </div>
@@ -85,12 +85,12 @@
                         <div class="mt-5 flex items-center justify-between border-t border-white/[0.08] pt-4">
                             <div class="flex items-center gap-6">
                                 <div>
-                                    <p class="text-[9px] uppercase tracking-wider text-slate-500">Progress</p>
-                                    <p class="mt-0.5 text-xs font-bold text-white">65% selesai</p>
+                                    <p class="text-[9px] uppercase tracking-wider text-slate-500">{{ __('Progress') }}</p>
+                                    <p class="mt-0.5 text-xs font-bold text-white">{{ __('65% selesai') }}</p>
                                 </div>
                                 <div>
-                                    <p class="text-[9px] uppercase tracking-wider text-slate-500">Pembayaran</p>
-                                    <p class="mt-0.5 text-xs font-bold text-emerald-300">DP diterima</p>
+                                    <p class="text-[9px] uppercase tracking-wider text-slate-500">{{ __('Pembayaran') }}</p>
+                                    <p class="mt-0.5 text-xs font-bold text-emerald-300">{{ __('DP diterima') }}</p>
                                 </div>
                             </div>
                             <div class="flex -space-x-2">
@@ -105,15 +105,15 @@
                 <div class="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3 text-[11px] font-medium text-slate-400">
                     <span class="flex items-center gap-2">
                         <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                        Progres real-time
+                        {{ __('Progres real-time') }}
                     </span>
                     <span class="flex items-center gap-2">
                         <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                        Laporan otomatis
+                        {{ __('Laporan otomatis') }}
                     </span>
                     <span class="flex items-center gap-2">
                         <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                        Update WA 1-klik
+                        {{ __('Update WA 1-klik') }}
                     </span>
                 </div>
             </div>
@@ -124,30 +124,36 @@
                     <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                     </svg>
-                    Data setiap toko terisolasi dan terlindungi
+                    {{ __('Data setiap toko terisolasi dan terlindungi') }}
                 </div>
                 <span>&copy; {{ date('Y') }} OrderFlow</span>
             </div>
         </div>
 
         <!-- KOLOM KANAN: FORM LOGIN BERSIH & MODERN -->
-        <div class="lg:col-span-6 xl:col-span-5 flex flex-col justify-between p-6 sm:p-10 lg:p-12 xl:p-16 min-h-screen bg-gray-50/50">
+        <div class="lg:col-span-6 xl:col-span-5 relative flex flex-col justify-between p-6 sm:p-10 lg:p-12 xl:p-16 min-h-screen bg-gray-50/50">
+            <div class="absolute top-6 right-6 sm:top-10 sm:right-10 lg:top-12 lg:right-12 xl:top-16 xl:right-16 hidden lg:block">
+                <x-locale-switcher />
+            </div>
             <!-- Mobile Brand Header (Tampil hanya di layar kecil / HP) -->
             <div class="lg:hidden flex items-center justify-between pb-6 border-b border-gray-200/60 mb-6">
                 <a href="/" class="flex items-center gap-2.5">
                     <x-brand-mark class="w-9 h-9 shrink-0" />
                     <span class="font-extrabold text-xl tracking-tight text-gray-900">Order<span class="text-indigo-600">Flow</span></span>
                 </a>
-                <span class="px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 text-[11px] font-bold">Workshop OS</span>
+                <div class="flex items-center gap-2">
+                    <x-locale-switcher />
+                    <span class="px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 text-[11px] font-bold">Workshop OS</span>
+                </div>
             </div>
 
             <!-- Login Form Container (Vertically Centered) -->
             <div class="my-auto max-w-md w-full mx-auto bg-white p-6 sm:p-8 rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-100">
                 <!-- Header Form -->
                 <div class="mb-6">
-                    <h2 class="text-2xl font-black text-gray-900 tracking-tight">Selamat Datang 👋</h2>
+                    <h2 class="text-2xl font-black text-gray-900 tracking-tight">{{ __('Selamat Datang 👋') }}</h2>
                     <p class="text-xs text-gray-500 mt-1.5 leading-relaxed">
-                        Masuk ke akun OrderFlow Anda untuk memantau produksi, pesanan baru, dan pembayaran hari ini.
+                        {{ __('Masuk ke akun OrderFlow Anda untuk memantau produksi, pesanan baru, dan pembayaran hari ini.') }}
                     </p>
                 </div>
 
@@ -178,8 +184,14 @@
                             <path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.1-1.6.4-2.3L1.9 7.3C.7 9.7 0 12.3 0 15.1c0 2.8.7 5.4 1.9 7.8l3.7-2.9z"/>
                             <path fill="#34A853" d="M12 23.5c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.4-6.4-5.2L1.9 16.5C3.7 20.2 7.5 23.5 12 23.5z"/>
                         </svg>
-                        <span>Masuk dengan Google</span>
+                        <span>{{ __('Masuk dengan Google') }}</span>
                     </a>
+                    <p class="mt-2 text-[11px] leading-relaxed text-center text-gray-400">
+                        {!! __('Pengguna baru yang melanjutkan melalui Google menyetujui :terms dan :privacy.', [
+                            'terms' => '<a href="'.route('terms').'" class="font-semibold text-indigo-600 hover:underline">'.__('Syarat & Ketentuan').'</a>',
+                            'privacy' => '<a href="'.route('privacy').'" class="font-semibold text-indigo-600 hover:underline">'.__('Kebijakan Privasi').'</a>',
+                        ]) !!}
+                    </p>
                 </div>
 
                 <!-- Divider -->
@@ -188,7 +200,7 @@
                         <div class="w-full border-t border-gray-200"></div>
                     </div>
                     <div class="relative flex justify-center text-xs">
-                        <span class="bg-white px-3 text-gray-400 font-medium">atau masuk dengan email</span>
+                        <span class="bg-white px-3 text-gray-400 font-medium">{{ __('atau masuk dengan email') }}</span>
                     </div>
                 </div>
 
@@ -199,7 +211,7 @@
                     <!-- Email Field -->
                     <div>
                         <label for="email" class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
-                            Alamat Email
+                            {{ __('Alamat Email') }}
                         </label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
@@ -224,11 +236,11 @@
                     <div>
                         <div class="flex items-center justify-between mb-1.5">
                             <label for="password" class="block text-xs font-bold text-gray-700 uppercase tracking-wider">
-                                Kata Sandi
+                                {{ __('Kata Sandi') }}
                             </label>
                             @if (Route::has('password.request'))
                                 <a class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline transition" href="{{ route('password.request') }}">
-                                    Lupa kata sandi?
+                                    {{ __('Lupa kata sandi?') }}
                                 </a>
                             @endif
                         </div>
@@ -249,7 +261,7 @@
                             <button type="button" 
                                     @click="showPassword = !showPassword" 
                                     class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600 transition"
-                                    title="Tampilkan / Sembunyikan Password">
+                                    title="{{ __('Tampilkan / Sembunyikan Password') }}">
                                 <svg x-show="!showPassword" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -269,7 +281,7 @@
                                    type="checkbox" 
                                    name="remember" 
                                    class="w-4 h-4 rounded-md border-gray-300 text-indigo-600 shadow-xs focus:ring-indigo-500 cursor-pointer">
-                            <span class="ms-2 text-xs font-medium text-gray-600">Ingat saya di perangkat ini</span>
+                            <span class="ms-2 text-xs font-medium text-gray-600">{{ __('Ingat saya di perangkat ini') }}</span>
                         </label>
                     </div>
 
@@ -277,7 +289,7 @@
                     <div class="pt-2">
                         <button type="submit" 
                                 class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold text-sm rounded-xl shadow-lg shadow-indigo-200/60 transition-all flex items-center justify-center gap-2 group">
-                            <span>Masuk ke Dashboard</span>
+                            <span>{{ __('Masuk ke Dashboard') }}</span>
                             <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
                             </svg>
@@ -287,9 +299,9 @@
                     <!-- Register CTA -->
                     <div class="pt-4 mt-4 border-t border-gray-100 text-center">
                         <p class="text-xs text-gray-500">
-                            Belum memiliki akun usaha? 
+                            {{ __('Belum memiliki akun usaha?') }}
                             <a href="{{ route('register') }}" class="font-bold text-indigo-600 hover:text-indigo-800 hover:underline ms-1">
-                                Daftar Sekarang Gratis →
+                                {{ __('Daftar Sekarang Gratis →') }}
                             </a>
                         </p>
                     </div>
@@ -299,9 +311,9 @@
                 <div class="mt-5 p-3 rounded-2xl bg-indigo-50/60 border border-indigo-100 text-[11px] text-indigo-900 flex items-start gap-2.5">
                     <span class="text-base shrink-0">💡</span>
                     <div>
-                        <span class="font-bold">Pelanggan ingin melacak pesanan?</span>
+                        <span class="font-bold">{{ __('Pelanggan ingin melacak pesanan?') }}</span>
                         <p class="text-indigo-700 mt-0.5">
-                            Gunakan tautan pelacakan langsung yang dikirimkan via WhatsApp toko tanpa perlu login ke sistem ini.
+                            {{ __('Gunakan tautan pelacakan langsung yang dikirimkan via WhatsApp toko tanpa perlu login ke sistem ini.') }}
                         </p>
                     </div>
                 </div>
@@ -309,7 +321,7 @@
 
             <!-- Footer -->
             <div class="pt-6 text-center text-xs text-gray-400">
-                <span>OrderFlow — Solusi Manajemen Produksi & Order WhatsApp</span>
+                <span>OrderFlow — {{ __('Solusi Manajemen Produksi & Pesanan WhatsApp') }}</span>
             </div>
         </div>
 

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Order;
+use App\Models\Payment;
 
 class WhatsAppService
 {
@@ -14,25 +15,25 @@ class WhatsAppService
      */
     public function statusMessage(Order $order): string
     {
-        $customer     = $order->customer;
+        $customer = $order->customer;
         $businessName = auth()->user()->business_name ?? auth()->user()->name;
 
         $deadline = $order->deadline
             ? $order->deadline->translatedFormat('d F Y')
             : '-';
 
-        $trackingInfo = $order->tracking_url 
-            ? "🔍 Lacak progres pengerjaan:\n" . $order->tracking_url . "\n\n" 
-            : "";
+        $trackingInfo = $order->tracking_url
+            ? __('🔍 Lacak progres pengerjaan:')."\n".$order->tracking_url."\n\n"
+            : '';
 
-        return "Halo {$customer->name} 👋\n\n"
-            . "Pesanan #{$order->order_number} (*{$order->name}*) saat ini:\n"
-            . "📦 Status: *{$order->status_label}*\n"
-            . "📅 Deadline: {$deadline}\n\n"
-            . "Sisa pembayaran: *Rp" . number_format($order->remaining_amount, 0, ',', '.') . "*\n\n"
-            . $trackingInfo
-            . "Terima kasih 🙏\n"
-            . "- {$businessName}";
+        return __('Halo :name 👋', ['name' => $customer->name])."\n\n"
+            .__('Pesanan #:number (*:order*) saat ini:', ['number' => $order->order_number, 'order' => $order->name])."\n"
+            .__('📦 Status: *:status*', ['status' => __($order->status_label)])."\n"
+            .__('📅 Deadline: :date', ['date' => $deadline])."\n\n"
+            .__('Sisa pembayaran: *Rp:amount*', ['amount' => number_format($order->remaining_amount, 0, ',', '.')])."\n\n"
+            .$trackingInfo
+            .__('Terima kasih 🙏')."\n"
+            ."- {$businessName}";
     }
 
     /**
@@ -48,21 +49,21 @@ class WhatsAppService
      */
     public function paymentMessage(Order $order, float $amount): string
     {
-        $customer     = $order->customer;
+        $customer = $order->customer;
         $businessName = auth()->user()->business_name ?? auth()->user()->name;
 
-        $trackingInfo = $order->tracking_url 
-            ? "🔍 Cek rincian pesanan & nota:\n" . $order->tracking_url . "\n\n" 
-            : "";
+        $trackingInfo = $order->tracking_url
+            ? __('🔍 Cek rincian pesanan & nota:')."\n".$order->tracking_url."\n\n"
+            : '';
 
-        return "Halo {$customer->name} 👋\n\n"
-            . "Kami konfirmasi pembayaran untuk pesanan #{$order->order_number}:\n"
-            . "💰 Dibayar: *Rp" . number_format($amount, 0, ',', '.') . "*\n"
-            . "✅ Total lunas: *Rp" . number_format($order->total_paid, 0, ',', '.') . "*\n"
-            . "📋 Sisa: *Rp" . number_format($order->remaining_amount, 0, ',', '.') . "*\n\n"
-            . $trackingInfo
-            . "Terima kasih atas pembayarannya 🙏\n"
-            . "- {$businessName}";
+        return __('Halo :name 👋', ['name' => $customer->name])."\n\n"
+            .__('Kami konfirmasi pembayaran untuk pesanan #:number:', ['number' => $order->order_number])."\n"
+            .__('💰 Dibayar: *Rp:amount*', ['amount' => number_format($amount, 0, ',', '.')])."\n"
+            .__('✅ Total lunas: *Rp:amount*', ['amount' => number_format($order->total_paid, 0, ',', '.')])."\n"
+            .__('📋 Sisa: *Rp:amount*', ['amount' => number_format($order->remaining_amount, 0, ',', '.')])."\n\n"
+            .$trackingInfo
+            .__('Terima kasih atas pembayarannya 🙏')."\n"
+            ."- {$businessName}";
     }
 
     /**
@@ -78,25 +79,25 @@ class WhatsAppService
      */
     public function reminderMessage(Order $order): string
     {
-        $customer     = $order->customer;
+        $customer = $order->customer;
         $businessName = auth()->user()->business_name ?? auth()->user()->name;
 
         $deadline = $order->deadline
             ? $order->deadline->translatedFormat('d F Y')
             : '-';
 
-        $trackingInfo = $order->tracking_url 
-            ? "🔍 Cek rincian nota & progres online:\n" . $order->tracking_url . "\n\n" 
-            : "";
+        $trackingInfo = $order->tracking_url
+            ? __('🔍 Cek rincian nota & progres online:')."\n".$order->tracking_url."\n\n"
+            : '';
 
-        return "Halo kak {$customer->name} 👋\n\n"
-            . "Mengingatkan untuk sisa tagihan pesanan #{$order->order_number} (*{$order->name}*):\n"
-            . "📦 Status: *{$order->status_label}*\n"
-            . "💰 Sisa Pembayaran: *Rp" . number_format($order->remaining_amount, 0, ',', '.') . "*\n"
-            . "📅 Target Selesai: {$deadline}\n\n"
-            . $trackingInfo
-            . "Silakan lakukan pelunasan agar pesanan dapat segera dikirim / diambil ya kak. Terima kasih banyak 🙏\n"
-            . "- {$businessName}";
+        return __('Halo kak :name 👋', ['name' => $customer->name])."\n\n"
+            .__('Mengingatkan untuk sisa tagihan pesanan #:number (*:order*):', ['number' => $order->order_number, 'order' => $order->name])."\n"
+            .__('📦 Status: *:status*', ['status' => __($order->status_label)])."\n"
+            .__('💰 Sisa Pembayaran: *Rp:amount*', ['amount' => number_format($order->remaining_amount, 0, ',', '.')])."\n"
+            .__('📅 Target Selesai: :date', ['date' => $deadline])."\n\n"
+            .$trackingInfo
+            .__('Silakan lakukan pelunasan agar pesanan dapat segera dikirim / diambil. Terima kasih banyak 🙏')."\n"
+            ."- {$businessName}";
     }
 
     /**
@@ -112,22 +113,22 @@ class WhatsAppService
      */
     public function refundMessage(Order $order, float $amount, string $method = 'cash'): string
     {
-        $customer     = $order->customer;
+        $customer = $order->customer;
         $businessName = auth()->user()->business_name ?? auth()->user()->name;
-        $methodLabel  = \App\Models\Payment::METHODS[$method] ?? $method;
+        $methodLabel = __(Payment::METHODS[$method] ?? $method);
 
-        $trackingInfo = $order->tracking_url 
-            ? "🔍 Rincian transaksi pesanan:\n" . $order->tracking_url . "\n\n" 
-            : "";
+        $trackingInfo = $order->tracking_url
+            ? __('🔍 Rincian transaksi pesanan:')."\n".$order->tracking_url."\n\n"
+            : '';
 
-        return "Halo kak {$customer->name} 👋\n\n"
-            . "Kami konfirmasikan bahwa *pengembalian dana (refund)* untuk pesanan #{$order->order_number} (*{$order->name}*) telah kami serahkan/proses:\n"
-            . "💸 Nominal Refund: *Rp" . number_format($amount, 0, ',', '.') . "*\n"
-            . "💳 Metode: *{$methodLabel}*\n"
-            . "📅 Tanggal: " . now()->translatedFormat('d F Y') . "\n\n"
-            . $trackingInfo
-            . "Mohon cek mutasi/fisik uang tunai yang telah kami serahkan. Terima kasih atas pengertiannya 🙏\n"
-            . "- {$businessName}";
+        return __('Halo kak :name 👋', ['name' => $customer->name])."\n\n"
+            .__('Kami konfirmasikan bahwa *pengembalian dana (refund)* untuk pesanan #:number (*:order*) telah kami proses:', ['number' => $order->order_number, 'order' => $order->name])."\n"
+            .__('💸 Nominal Refund: *Rp:amount*', ['amount' => number_format($amount, 0, ',', '.')])."\n"
+            .__('💳 Metode: *:method*', ['method' => $methodLabel])."\n"
+            .__('📅 Tanggal: :date', ['date' => now()->translatedFormat('d F Y')])."\n\n"
+            .$trackingInfo
+            .__('Mohon periksa mutasi rekening atau uang tunai yang telah kami serahkan. Terima kasih atas pengertiannya 🙏')."\n"
+            ."- {$businessName}";
     }
 
     /**
@@ -143,27 +144,27 @@ class WhatsAppService
      */
     public function completedMessage(Order $order): string
     {
-        $customer     = $order->customer;
+        $customer = $order->customer;
         $businessName = auth()->user()->business_name ?? auth()->user()->name;
 
-        $trackingInfo = $order->tracking_url 
-            ? "🔍 Detail pesanan & nota:\n" . $order->tracking_url . "\n\n" 
-            : "";
+        $trackingInfo = $order->tracking_url
+            ? __('🔍 Detail pesanan & nota:')."\n".$order->tracking_url."\n\n"
+            : '';
 
-        $message = "Halo {$customer->name} 👋\n\n"
-            . "Pesanan Anda sudah *SELESAI* 🎉\n\n"
-            . "📦 Pesanan: *{$order->name}*\n"
-            . "🔢 Order: #{$order->order_number}\n"
-            . "📦 Qty: {$order->quantity} pcs\n\n";
+        $message = __('Halo :name 👋', ['name' => $customer->name])."\n\n"
+            .__('Pesanan Anda sudah *SELESAI* 🎉')."\n\n"
+            .__('📦 Pesanan: *:order*', ['order' => $order->name])."\n"
+            .__('🔢 Order: #:number', ['number' => $order->order_number])."\n"
+            .__('📦 Jumlah: :quantity pcs', ['quantity' => $order->quantity])."\n\n";
 
         if ($order->remaining_amount > 0) {
-            $message .= "💳 Sisa pembayaran: *Rp" . number_format($order->remaining_amount, 0, ',', '.') . "*\n\n";
+            $message .= __('💳 Sisa pembayaran: *Rp:amount*', ['amount' => number_format($order->remaining_amount, 0, ',', '.')])."\n\n";
         }
 
-        $message .= "Silakan hubungi kami untuk pengiriman/pengambilan.\n\n"
-            . $trackingInfo
-            . "Terima kasih sudah mempercayai kami 🙏\n"
-            . "- {$businessName}";
+        $message .= __('Silakan hubungi kami untuk pengiriman/pengambilan.')."\n\n"
+            .$trackingInfo
+            .__('Terima kasih sudah mempercayai kami 🙏')."\n"
+            ."- {$businessName}";
 
         return $message;
     }
@@ -176,8 +177,38 @@ class WhatsAppService
         return $this->buildUrl($order->customer->whats_app_number, $this->completedMessage($order));
     }
 
+    /**
+     * Teks pesan penawaran harga untuk pelanggan.
+     */
+    public function quotationMessage(\App\Models\Quotation $quotation): string
+    {
+        $customer = $quotation->customer;
+        $user = auth()->user();
+        $businessName = $user ? ($user->business_name ?? $user->name) : ($quotation->user->business_name ?? $quotation->user->name);
+
+        $validUntil = $quotation->valid_until
+            ? $quotation->valid_until->translatedFormat('d F Y')
+            : '-';
+
+        return __('Halo :name 👋', ['name' => $customer->name])."\n\n"
+            .__('Berikut penawaran harga resmi dari *:business*:', ['business' => $businessName])."\n"
+            .__('📋 Penawaran: *:title*', ['title' => $quotation->title])."\n"
+            .__('🔢 No: *:number*', ['number' => $quotation->quotation_number])."\n"
+            .__('💰 Total: *Rp:amount*', ['amount' => number_format($quotation->total_amount, 0, ',', '.')])."\n"
+            .__('📅 Berlaku Hingga: :date', ['date' => $validUntil])."\n\n"
+            .__('🔍 Lihat rincian & konfirmasi penawaran di tautan berikut:')."\n"
+            .$quotation->public_url."\n\n"
+            .__('Terima kasih 🙏')."\n"
+            ."- {$businessName}";
+    }
+
+    public function quotationUrl(\App\Models\Quotation $quotation): string
+    {
+        return $this->buildUrl($quotation->customer->whats_app_number, $this->quotationMessage($quotation));
+    }
+
     private function buildUrl(string $phone, string $message): string
     {
-        return 'https://wa.me/' . $phone . '?text=' . urlencode($message);
+        return 'https://wa.me/'.$phone.'?text='.urlencode($message);
     }
 }

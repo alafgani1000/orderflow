@@ -4,55 +4,55 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\OrderFile;
+use App\Services\SecureFileStorage;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class OrderFileController extends Controller
 {
+    public function __construct(private SecureFileStorage $files) {}
+
     public function store(Request $request, Order $order)
     {
         $this->authorize('update', $order);
 
         $request->validate([
-            'files'   => 'required|array|max:5',
+            'files' => 'required|array|max:5',
             'files.*' => 'file|max:10240|mimes:jpg,jpeg,png,pdf,zip,rar,ai,psd',
         ]);
 
         foreach ($request->file('files') as $file) {
-            $path = $file->store("designs/{$order->id}", 'public');
             $order->files()->create([
                 'file_name' => $file->getClientOriginalName(),
-                'file_path' => $path,
+                'file_path' => $this->files->store($file, "designs/{$order->id}"),
                 'file_type' => $file->getClientMimeType(),
                 'file_size' => $file->getSize(),
             ]);
         }
 
-        return back()->with('success', 'File desain berhasil diupload.');
+        return back()->with('success', __('File desain berhasil diupload.'));
     }
 
-    public function download(Order $order, OrderFile $file)
+    public function download(Request $request, Order $order, OrderFile $file)
     {
         $this->authorize('view', $order);
+        $this->ensureFileBelongsToOrder($order, $file);
 
-        if ($file->order_id !== $order->id) {
-            abort(403);
-        }
-
-        return Storage::disk('public')->download($file->file_path, $file->file_name);
+        return $this->files->response($file->file_path, $file->file_name, $request->boolean('preview'));
     }
 
     public function destroy(Order $order, OrderFile $file)
     {
         $this->authorize('update', $order);
+        $this->ensureFileBelongsToOrder($order, $file);
 
-        if ($file->order_id !== $order->id) {
-            abort(403);
-        }
-
-        Storage::disk('public')->delete($file->file_path);
+        $this->files->delete($file->file_path);
         $file->delete();
 
-        return back()->with('success', 'File berhasil dihapus.');
+        return back()->with('success', __('File berhasil dihapus.'));
+    }
+
+    private function ensureFileBelongsToOrder(Order $order, OrderFile $file): void
+    {
+        abort_unless((int) $file->order_id === (int) $order->id, 404);
     }
 }

@@ -15,7 +15,7 @@ class CustomerController extends Controller
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%");
+                    ->orWhere('phone', 'like', "%{$search}%");
             });
         }
 
@@ -32,10 +32,10 @@ class CustomerController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'    => 'required|string|max:255',
-            'phone'   => 'nullable|string|max:20',
+            'name' => 'required|string|max:255',
+            'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string',
-            'notes'   => 'nullable|string',
+            'notes' => 'nullable|string',
         ]);
 
         $validated['user_id'] = auth()->user()->getStoreOwnerId();
@@ -44,19 +44,19 @@ class CustomerController extends Controller
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
-                'success'  => true,
+                'success' => true,
                 'customer' => [
-                    'id'           => $customer->id,
-                    'name'         => $customer->name,
-                    'phone'        => $customer->phone,
-                    'display_text' => $customer->name . ($customer->phone ? ' (' . $customer->phone . ')' : ''),
+                    'id' => $customer->id,
+                    'name' => $customer->name,
+                    'phone' => $customer->phone,
+                    'display_text' => $customer->name.($customer->phone ? ' ('.$customer->phone.')' : ''),
                 ],
-                'message'  => 'Pelanggan berhasil ditambahkan.',
+                'message' => __('Pelanggan berhasil ditambahkan.'),
             ], 201);
         }
 
         return redirect()->route('customers.index')
-            ->with('success', 'Pelanggan berhasil ditambahkan.');
+            ->with('success', __('Pelanggan berhasil ditambahkan.'));
     }
 
     public function show(Customer $customer)
@@ -74,6 +74,7 @@ class CustomerController extends Controller
     public function edit(Customer $customer)
     {
         $this->authorize('update', $customer);
+
         return view('customers.edit', compact('customer'));
     }
 
@@ -82,16 +83,16 @@ class CustomerController extends Controller
         $this->authorize('update', $customer);
 
         $validated = $request->validate([
-            'name'    => 'required|string|max:255',
-            'phone'   => 'nullable|string|max:20',
+            'name' => 'required|string|max:255',
+            'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string',
-            'notes'   => 'nullable|string',
+            'notes' => 'nullable|string',
         ]);
 
         $customer->update($validated);
 
         return redirect()->route('customers.show', $customer)
-            ->with('success', 'Data pelanggan berhasil diperbarui.');
+            ->with('success', __('Data pelanggan berhasil diperbarui.'));
     }
 
     public function destroy(Customer $customer)
@@ -99,12 +100,12 @@ class CustomerController extends Controller
         $this->authorize('delete', $customer);
 
         if ($customer->orders()->exists()) {
-            return back()->with('error', 'Pelanggan tidak dapat dihapus karena memiliki pesanan.');
+            return back()->with('error', __('Pelanggan tidak dapat dihapus karena memiliki pesanan.'));
         }
 
         $customer->delete();
 
         return redirect()->route('customers.index')
-            ->with('success', 'Pelanggan berhasil dihapus.');
+            ->with('success', __('Pelanggan berhasil dihapus.'));
     }
 }

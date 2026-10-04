@@ -19,9 +19,9 @@ class TenantController extends Controller
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('business_name', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('business_name', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%");
             });
         }
 
@@ -32,18 +32,18 @@ class TenantController extends Controller
         }
 
         $tenants = $query->orderByDesc('created_at')->paginate(15)->withQueryString();
-        $plans   = Plan::where('is_active', true)->get();
+        $plans = Plan::where('is_active', true)->get();
 
         return view('admin.tenants.index', compact('tenants', 'plans'));
     }
 
     public function show(User $tenant)
     {
-        if (!$tenant->isOwner()) {
+        if (! $tenant->isOwner()) {
             abort(404);
         }
 
-        $tenant->load(['subscription.plan', 'employees', 'orders' => fn($q) => $q->latest()->take(10)]);
+        $tenant->load(['subscription.plan', 'employees', 'orders' => fn ($q) => $q->latest()->take(10)]);
         $plans = Plan::where('is_active', true)->get();
 
         return view('admin.tenants.show', compact('tenant', 'plans'));
@@ -52,8 +52,8 @@ class TenantController extends Controller
     public function updateSubscription(Request $request, User $tenant)
     {
         $validated = $request->validate([
-            'plan_id'     => 'required|exists:plans,id',
-            'status'      => 'required|in:trialing,active,past_due,expired,cancelled',
+            'plan_id' => 'required|exists:plans,id',
+            'status' => 'required|in:trialing,active,past_due,expired,cancelled',
             'extend_days' => 'nullable|integer|min:0|max:365',
         ]);
 
@@ -66,26 +66,26 @@ class TenantController extends Controller
             $endsAt = now()->addDays($days);
         }
 
-        if (!$subscription) {
+        if (! $subscription) {
             Subscription::create([
-                'user_id'       => $tenant->id,
-                'plan_id'       => $plan->id,
-                'status'        => $validated['status'],
-                'starts_at'     => now(),
-                'ends_at'       => $endsAt,
+                'user_id' => $tenant->id,
+                'plan_id' => $plan->id,
+                'status' => $validated['status'],
+                'starts_at' => now(),
+                'ends_at' => $endsAt,
                 'trial_ends_at' => $validated['status'] === Subscription::STATUS_TRIALING ? now()->addDays(14) : null,
-                'notes'         => 'Diperbarui secara manual oleh Super Admin',
+                'notes' => 'Diperbarui secara manual oleh Super Admin',
             ]);
         } else {
             $subscription->update([
-                'plan_id'       => $plan->id,
-                'status'        => $validated['status'],
-                'ends_at'       => $validated['status'] === Subscription::STATUS_ACTIVE ? ($validated['extend_days'] ? now()->addDays($validated['extend_days']) : $subscription->ends_at ?? now()->addMonth()) : $subscription->ends_at,
+                'plan_id' => $plan->id,
+                'status' => $validated['status'],
+                'ends_at' => $validated['status'] === Subscription::STATUS_ACTIVE ? ($validated['extend_days'] ? now()->addDays($validated['extend_days']) : $subscription->ends_at ?? now()->addMonth()) : $subscription->ends_at,
                 'trial_ends_at' => $validated['status'] === Subscription::STATUS_TRIALING ? now()->addDays(14) : null,
-                'notes'         => 'Diperbarui secara manual oleh Super Admin',
+                'notes' => 'Diperbarui secara manual oleh Super Admin',
             ]);
         }
 
-        return back()->with('success', "Status langganan {$tenant->business_name} berhasil diperbarui.");
+        return back()->with('success', __('Status langganan :business berhasil diperbarui.', ['business' => $tenant->business_name]));
     }
 }

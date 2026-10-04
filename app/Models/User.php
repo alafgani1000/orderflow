@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use Database\Factories\UserFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -11,20 +12,23 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
     const ROLE_SUPERADMIN = 'superadmin';
-    const ROLE_OWNER      = 'owner';
-    const ROLE_ADMIN_CS   = 'admin_cs';
+
+    const ROLE_OWNER = 'owner';
+
+    const ROLE_ADMIN_CS = 'admin_cs';
+
     const ROLE_PRODUCTION = 'production';
 
     const ROLES = [
         self::ROLE_SUPERADMIN => 'Super Admin Platform',
-        self::ROLE_OWNER      => 'Owner / Pemilik Toko',
-        self::ROLE_ADMIN_CS   => 'Kasir / Admin CS',
+        self::ROLE_OWNER => 'Owner / Pemilik Toko',
+        self::ROLE_ADMIN_CS => 'Kasir / Admin CS',
         self::ROLE_PRODUCTION => 'Operator Workshop / Desain',
     ];
 
@@ -35,10 +39,19 @@ class User extends Authenticatable
         'password',
         'business_name',
         'phone',
+        'business_address',
+        'business_bank_name',
+        'business_bank_account',
+        'business_bank_holder',
         'role',
         'owner_id',
         'google_id',
         'avatar',
+        'locale',
+        'terms_accepted_at',
+        'terms_version',
+        'privacy_version',
+        'onboarding_completed_at',
     ];
 
     protected $hidden = [
@@ -50,6 +63,8 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'terms_accepted_at' => 'datetime',
+            'onboarding_completed_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
@@ -72,6 +87,11 @@ class User extends Authenticatable
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class, 'user_id', 'id');
+    }
+
+    public function quotations(): HasMany
+    {
+        return $this->hasMany(Quotation::class, 'user_id', 'id');
     }
 
     public function subscription(): HasOne
@@ -150,7 +170,7 @@ class User extends Authenticatable
         }
 
         $subscription = $this->currentSubscription();
-        if (!$subscription) {
+        if (! $subscription) {
             // Default true jika belum ada record langganan (kompatibilitas test lama)
             return true;
         }
@@ -164,7 +184,9 @@ class User extends Authenticatable
     public function currentMonthOrdersCount(): int
     {
         $storeOwnerId = $this->getStoreOwnerId();
+
         return Order::where('user_id', $storeOwnerId)
+            ->whereNull('demo_batch_id')
             ->whereBetween('created_at', [
                 Carbon::now()->startOfMonth(),
                 Carbon::now()->endOfMonth(),
@@ -182,7 +204,7 @@ class User extends Authenticatable
         }
 
         $subscription = $this->currentSubscription();
-        if (!$subscription || !$subscription->plan) {
+        if (! $subscription || ! $subscription->plan) {
             return true;
         }
 
@@ -200,6 +222,7 @@ class User extends Authenticatable
     public function currentEmployeesCount(): int
     {
         $storeOwnerId = $this->getStoreOwnerId();
+
         return User::where('owner_id', $storeOwnerId)->count();
     }
 
@@ -212,12 +235,12 @@ class User extends Authenticatable
             return true;
         }
 
-        if (!$this->isOwner()) {
+        if (! $this->isOwner()) {
             return false;
         }
 
         $subscription = $this->currentSubscription();
-        if (!$subscription || !$subscription->plan) {
+        if (! $subscription || ! $subscription->plan) {
             return true;
         }
 
@@ -231,16 +254,16 @@ class User extends Authenticatable
 
     public function getRoleLabelAttribute(): string
     {
-        return self::ROLES[$this->role] ?? 'Owner / Pemilik Toko';
+        return __(self::ROLES[$this->role] ?? 'Owner / Pemilik Toko');
     }
 
     public function getShortRoleLabelAttribute(): string
     {
-        return match($this->role) {
+        return __(match ($this->role) {
             self::ROLE_SUPERADMIN => 'Super Admin',
-            self::ROLE_ADMIN_CS   => 'Kasir / CS',
+            self::ROLE_ADMIN_CS => 'Kasir / CS',
             self::ROLE_PRODUCTION => 'Operator',
-            default               => 'Owner',
-        };
+            default => 'Owner',
+        });
     }
 }

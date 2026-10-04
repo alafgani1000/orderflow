@@ -26,6 +26,7 @@ class Order extends Model
         'notes',
         'tracking_token',
         'size_breakdown',
+        'demo_batch_id',
     ];
 
     protected static function booted(): void
@@ -38,41 +39,41 @@ class Order extends Model
     }
 
     protected $casts = [
-        'deadline'       => 'date',
+        'deadline' => 'date',
         'price_per_unit' => 'decimal:2',
-        'total_amount'   => 'decimal:2',
+        'total_amount' => 'decimal:2',
         'size_breakdown' => 'array',
     ];
 
     // ─── Status labels ────────────────────────────────────────────────────────
 
     const STATUSES = [
-        'new'            => 'Baru',
+        'new' => 'Baru',
         'waiting_design' => 'Menunggu Desain',
-        'design_approved'=> 'Desain Disetujui',
-        'production'     => 'Produksi',
-        'completed'      => 'Selesai',
-        'delivered'      => 'Dikirim / Diambil',
-        'cancelled'      => 'Dibatalkan',
+        'design_approved' => 'Desain Disetujui',
+        'production' => 'Produksi',
+        'completed' => 'Selesai',
+        'delivered' => 'Dikirim / Diambil',
+        'cancelled' => 'Dibatalkan',
     ];
 
     const STATUS_COLORS = [
-        'new'            => 'gray',
+        'new' => 'gray',
         'waiting_design' => 'yellow',
-        'design_approved'=> 'blue',
-        'production'     => 'orange',
-        'completed'      => 'green',
-        'delivered'      => 'teal',
-        'cancelled'      => 'red',
+        'design_approved' => 'blue',
+        'production' => 'orange',
+        'completed' => 'green',
+        'delivered' => 'teal',
+        'cancelled' => 'red',
     ];
 
     // Urutan transisi status berikutnya
     const STATUS_FLOW = [
-        'new'            => 'waiting_design',
+        'new' => 'waiting_design',
         'waiting_design' => 'design_approved',
-        'design_approved'=> 'production',
-        'production'     => 'completed',
-        'completed'      => 'delivered',
+        'design_approved' => 'production',
+        'production' => 'completed',
+        'completed' => 'delivered',
     ];
 
     // ─── Accessors ────────────────────────────────────────────────────────────
@@ -95,13 +96,15 @@ class Order extends Model
     public function getNextStatusLabelAttribute(): ?string
     {
         $next = $this->next_status;
+
         return $next ? self::STATUSES[$next] : null;
     }
 
     public function getTotalPaidAttribute(): float
     {
         $payments = (float) $this->payments()->where('type', 'payment')->sum('amount');
-        $refunds  = (float) $this->payments()->where('type', 'refund')->sum('amount');
+        $refunds = (float) $this->payments()->where('type', 'refund')->sum('amount');
+
         return max(0, $payments - $refunds);
     }
 
@@ -134,14 +137,14 @@ class Order extends Model
     {
         return $this->deadline
             && $this->deadline->isPast()
-            && !in_array($this->status, ['completed', 'delivered', 'cancelled']);
+            && ! in_array($this->status, ['completed', 'delivered', 'cancelled']);
     }
 
     public function getIsDueTodayAttribute(): bool
     {
-        return $this->deadline 
+        return $this->deadline
             && $this->deadline->isToday()
-            && !in_array($this->status, ['completed', 'delivered', 'cancelled']);
+            && ! in_array($this->status, ['completed', 'delivered', 'cancelled']);
     }
 
     public function getTrackingUrlAttribute(): string
@@ -151,12 +154,12 @@ class Order extends Model
 
     public function getHasSizeBreakdownAttribute(): bool
     {
-        return !empty($this->size_breakdown) && is_array($this->size_breakdown);
+        return ! empty($this->size_breakdown) && is_array($this->size_breakdown);
     }
 
     public function getSizeSummaryAttribute(): ?string
     {
-        if (!$this->has_size_breakdown) {
+        if (! $this->has_size_breakdown) {
             return null;
         }
 
@@ -167,7 +170,7 @@ class Order extends Model
             }
         }
 
-        return !empty($parts) ? implode(', ', $parts) : null;
+        return ! empty($parts) ? implode(', ', $parts) : null;
     }
 
     // ─── Scopes ───────────────────────────────────────────────────────────────
@@ -217,5 +220,10 @@ class Order extends Model
     public function files(): HasMany
     {
         return $this->hasMany(OrderFile::class);
+    }
+
+    public function quotation(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Quotation::class);
     }
 }

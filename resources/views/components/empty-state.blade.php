@@ -1,5 +1,5 @@
 @props([
-    'title' => 'Tidak ada data',
+    'title' => __('Tidak ada data'),
     'description' => null,
     'actionText' => null,
     'actionUrl' => null,

@@ -87,6 +87,13 @@ Fitur 1-klik membuka WhatsApp dengan pesan yang sudah diformat rapi (tanpa biaya
 - Konfigurasi nama pemilik, nama brand/toko/konveksi, nomor WhatsApp usaha.
 - Keamanan: Ubah kata sandi / password akun.
 
+### 9. 🌐 Bahasa & Kesiapan Komersial
+- Antarmuka Bahasa Indonesia dan Inggris, tersimpan per akun.
+- Template WhatsApp, validasi, tanggal, invoice, tracking, billing, dan panel admin mengikuti bahasa aktif.
+- Halaman Syarat & Ketentuan serta Kebijakan Privasi bilingual.
+- Persetujuan legal tercatat saat akun baru dibuat.
+- Rekening pembayaran dan kontak dukungan dikonfigurasi melalui environment, bukan ditanam di source code.
+
 ---
 
 ## 🛠️ 4. Tech Stack
@@ -129,6 +136,21 @@ npm run build
 # 6. Jalankan local development server
 php artisan serve
 ```
+
+Sebelum menerima pembayaran produksi, isi identitas bisnis dan rekening resmi di `.env`:
+
+```dotenv
+ORDERFLOW_COMPANY_NAME="OrderFlow"
+ORDERFLOW_SUPPORT_EMAIL="support@orderflow.id"
+ORDERFLOW_BILLING_PHONE=""
+ORDERFLOW_BCA_ACCOUNT=""
+ORDERFLOW_BCA_ACCOUNT_HOLDER=""
+ORDERFLOW_MANDIRI_ACCOUNT=""
+ORDERFLOW_MANDIRI_ACCOUNT_HOLDER=""
+ORDERFLOW_QRIS_ENABLED=false
+```
+
+Rekening kosong tidak ditampilkan. Jika seluruh metode pembayaran kosong, konfirmasi pembayaran otomatis dinonaktifkan agar pelanggan tidak menerima instruksi transfer yang belum diverifikasi.
 
 Buka browser Anda di: **[http://127.0.0.1:8000](http://127.0.0.1:8000)**
 
@@ -281,36 +303,18 @@ Semua fitur telah dilengkapi test otomatis menggunakan PHPUnit:
 php artisan test
 ```
 
-### Hasil Test:
-```text
-   PASS  Tests\Unit\ExampleTest
-   PASS  Tests\Feature\Auth\AuthenticationTest
-   PASS  Tests\Feature\Auth\EmailVerificationTest
-   PASS  Tests\Feature\Auth\PasswordConfirmationTest
-   PASS  Tests\Feature\Auth\PasswordResetTest
-   PASS  Tests\Feature\Auth\PasswordUpdateTest
-   PASS  Tests\Feature\Auth\RegistrationTest
-   PASS  Tests\Feature\OrderFlowTest
-  ✓ landing page can be rendered
-  ✓ user can register with business fields
-  ✓ dashboard displays kpi counters
-  ✓ can create customer
-  ✓ can create order with auto generated order number
-  ✓ can update order status
-  ✓ can record payment and reduce remaining balance
-  ✓ whatsapp service generates valid url
-
-  Tests:    27 passed (67 assertions)
-  Duration: 100% OK
-```
+Suite pengujian mencakup autentikasi, isolasi tenant, pesanan, pembayaran/refund, langganan, keamanan, lokalisasi, halaman legal, persetujuan pengguna, dan validasi rekening pembayaran.
 
 ---
 
 ## 🗺️ 10. Roadmap Pengembangan Selanjutnya
 
-- [ ] **Fase 2**: Reminder deadline otomatis via WA Gateway (Fonnte/Wablas), Cetak Invoice PDF / Surat Jalan.
-- [ ] **Fase 3**: Integrasi WhatsApp Cloud API resmi, Laporan omset bulanan & grafik penjualan.
-- [ ] **Fase 4**: Manajemen stok bahan baku (kain, tinta, kertas), Akun multi-staff / operator sablon.
+- [x] **Fondasi SaaS**: Multi-tenant, paket langganan, multi-staff, invoice/SPK, laporan, refund, dan tracking publik.
+- [x] **Lokalisasi**: Bahasa Indonesia dan Inggris untuk alur pengguna utama.
+- [x] **Fondasi komersial**: Dokumen legal, rekam persetujuan, dan konfigurasi pembayaran aman.
+- [ ] **Fase berikutnya**: Onboarding toko, checklist aktivasi, dan panduan penggunaan pertama.
+- [ ] **Otomasi**: Reminder deadline melalui WhatsApp Cloud API resmi.
+- [ ] **Operasional**: Manajemen stok bahan baku dan notifikasi stok minimum.
 
 ---
 

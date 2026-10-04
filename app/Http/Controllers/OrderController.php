@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Services\OrderNumberService;
+use App\Services\SecureFileStorage;
 use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -14,6 +15,7 @@ class OrderController extends Controller
     public function __construct(
         private OrderNumberService $orderNumberService,
         private WhatsAppService $whatsAppService,
+        private SecureFileStorage $secureFiles,
     ) {}
 
     public function index(Request $request)
@@ -29,12 +31,12 @@ class OrderController extends Controller
         // Filter deadline
         if ($deadline = $request->input('deadline')) {
             match ($deadline) {
-                'today'    => $query->dueToday(),
-                'overdue'  => $query->overdue(),
-                'week'     => $query->whereNotNull('deadline')
-                                    ->where('deadline', '<=', now()->addDays(7)->toDateString())
-                                    ->active(),
-                default    => null,
+                'today' => $query->dueToday(),
+                'overdue' => $query->overdue(),
+                'week' => $query->whereNotNull('deadline')
+                    ->where('deadline', '<=', now()->addDays(7)->toDateString())
+                    ->active(),
+                default => null,
             };
         }
 
@@ -47,8 +49,8 @@ class OrderController extends Controller
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('order_number', 'like', "%{$search}%")
-                  ->orWhere('name', 'like', "%{$search}%")
-                  ->orWhereHas('customer', fn($cq) => $cq->where('name', 'like', "%{$search}%"));
+                    ->orWhere('name', 'like', "%{$search}%")
+                    ->orWhereHas('customer', fn ($cq) => $cq->where('name', 'like', "%{$search}%"));
             });
         }
 
@@ -68,26 +70,26 @@ class OrderController extends Controller
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('order_number', 'like', "%{$search}%")
-                  ->orWhere('name', 'like', "%{$search}%")
-                  ->orWhereHas('customer', fn($cq) => $cq->where('name', 'like', "%{$search}%"));
+                    ->orWhere('name', 'like', "%{$search}%")
+                    ->orWhereHas('customer', fn ($cq) => $cq->where('name', 'like', "%{$search}%"));
             });
         }
 
         $orders = $query->orderByDesc('created_at')->get();
 
         $pipeline = [
-            'new'             => '1. Baru',
-            'waiting_design'  => '2. Menunggu Desain',
+            'new' => '1. Baru',
+            'waiting_design' => '2. Menunggu Desain',
             'design_approved' => '3. Desain Disetujui',
-            'production'      => '4. Sedang Produksi',
-            'completed'       => '5. Selesai',
-            'delivered'       => '6. Sudah Diambil',
+            'production' => '4. Sedang Produksi',
+            'completed' => '5. Selesai',
+            'delivered' => '6. Sudah Diambil',
         ];
 
         $columns = [];
         foreach ($pipeline as $statusKey => $label) {
             $columns[$statusKey] = [
-                'label'  => $label,
+                'label' => $label,
                 'orders' => $orders->where('status', $statusKey)->values(),
             ];
         }
@@ -97,79 +99,79 @@ class OrderController extends Controller
 
     public function create()
     {
-        if (!auth()->user()->canCreateOrder()) {
+        if (! auth()->user()->canCreateOrder()) {
             return redirect()->route('orders.index')
-                ->with('error', 'Batas kuota pesanan bulanan paket Anda telah tercapai. Silakan upgrade paket langganan untuk menambah pesanan.');
+                ->with('error', __('Batas kuota pesanan bulanan paket Anda telah tercapai. Silakan upgrade paket langganan untuk menambah pesanan.'));
         }
 
         $storeOwnerId = auth()->user()->getStoreOwnerId();
-        $customers    = Customer::where('user_id', $storeOwnerId)->orderBy('name')->get();
-        $statuses     = Order::STATUSES;
+        $customers = Customer::where('user_id', $storeOwnerId)->orderBy('name')->get();
+        $statuses = Order::STATUSES;
+
         return view('orders.create', compact('customers', 'statuses'));
     }
 
     public function store(Request $request)
     {
-        if (!auth()->user()->canCreateOrder()) {
+        if (! auth()->user()->canCreateOrder()) {
             return redirect()->route('orders.index')
-                ->with('error', 'Batas kuota pesanan bulanan paket Anda telah tercapai. Silakan upgrade paket langganan untuk menambah pesanan.');
+                ->with('error', __('Batas kuota pesanan bulanan paket Anda telah tercapai. Silakan upgrade paket langganan untuk menambah pesanan.'));
         }
 
         $storeOwnerId = auth()->user()->getStoreOwnerId();
 
         $validated = $request->validate([
-            'customer_id'    => [
+            'customer_id' => [
                 'required',
                 Rule::exists('customers', 'id')->where('user_id', $storeOwnerId),
             ],
-            'name'           => 'required|string|max:255',
-            'description'    => 'nullable|string',
-            'quantity'       => 'required|integer|min:1',
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'quantity' => 'required|integer|min:1',
             'price_per_unit' => 'required|numeric|min:0',
-            'total_amount'   => 'required|numeric|min:0',
-            'deadline'       => 'nullable|date',
-            'status'         => 'required|in:' . implode(',', array_keys(Order::STATUSES)),
-            'notes'          => 'nullable|string',
+            'total_amount' => 'required|numeric|min:0',
+            'deadline' => 'nullable|date',
+            'status' => 'required|in:'.implode(',', array_keys(Order::STATUSES)),
+            'notes' => 'nullable|string',
             'size_breakdown' => 'nullable|array',
             // DP (pembayaran awal)
-            'dp_amount'      => 'nullable|numeric|min:0',
-            'dp_method'      => 'nullable|in:cash,transfer,qris,other',
+            'dp_amount' => 'nullable|numeric|min:0',
+            'dp_method' => 'nullable|in:cash,transfer,qris,other',
         ]);
 
-        $validated['user_id']      = $storeOwnerId;
+        $validated['user_id'] = $storeOwnerId;
         $validated['order_number'] = $this->orderNumberService->generate($storeOwnerId);
 
         // Bersihkan size_breakdown: hanya simpan yang nilainya > 0
-        if (!empty($validated['size_breakdown'])) {
+        if (! empty($validated['size_breakdown'])) {
             $cleanSizes = [];
             foreach ($validated['size_breakdown'] as $sizeName => $qty) {
-                $qty = (int)$qty;
-                if ($qty > 0 && !empty(trim($sizeName))) {
+                $qty = (int) $qty;
+                if ($qty > 0 && ! empty(trim($sizeName))) {
                     $cleanSizes[trim($sizeName)] = $qty;
                 }
             }
-            $validated['size_breakdown'] = !empty($cleanSizes) ? $cleanSizes : null;
+            $validated['size_breakdown'] = ! empty($cleanSizes) ? $cleanSizes : null;
         }
 
         $order = Order::create($validated);
 
         // Simpan DP jika ada
-        if (!empty($validated['dp_amount']) && $validated['dp_amount'] > 0) {
+        if (! empty($validated['dp_amount']) && $validated['dp_amount'] > 0) {
             $order->payments()->create([
-                'amount'       => $validated['dp_amount'],
+                'amount' => $validated['dp_amount'],
                 'payment_date' => now()->toDateString(),
-                'method'       => $validated['dp_method'] ?? 'cash',
-                'notes'        => 'DP / Uang Muka',
+                'method' => $validated['dp_method'] ?? 'cash',
+                'notes' => 'DP / Uang Muka',
             ]);
         }
 
         // Upload file desain jika ada
         if ($request->hasFile('design_files')) {
             foreach ($request->file('design_files') as $file) {
-                $path = $file->store("designs/{$order->id}", 'public');
                 $order->files()->create([
                     'file_name' => $file->getClientOriginalName(),
-                    'file_path' => $path,
+                    'file_path' => $this->secureFiles->store($file, "designs/{$order->id}"),
                     'file_type' => $file->getClientMimeType(),
                     'file_size' => $file->getSize(),
                 ]);
@@ -179,7 +181,7 @@ class OrderController extends Controller
         $waStatusUrl = $this->whatsAppService->statusUrl($order);
 
         return redirect()->route('orders.show', $order)
-            ->with('success', "Pesanan #{$order->order_number} ({$order->name}) berhasil dibuat.")
+            ->with('success', __('Pesanan #:number (:name) berhasil dibuat.', ['number' => $order->order_number, 'name' => $order->name]))
             ->with('wa_status_url', $waStatusUrl);
     }
 
@@ -188,11 +190,11 @@ class OrderController extends Controller
         $this->authorize('view', $order);
         $order->load(['customer', 'payments', 'files']);
 
-        $waStatusUrl     = $this->whatsAppService->statusUrl($order);
-        $waCompletedUrl  = $this->whatsAppService->completedUrl($order);
-        $waReminderUrl   = $this->whatsAppService->reminderUrl($order);
-        $waStatusText    = $this->whatsAppService->statusMessage($order);
-        $waReminderText  = $this->whatsAppService->reminderMessage($order);
+        $waStatusUrl = $this->whatsAppService->statusUrl($order);
+        $waCompletedUrl = $this->whatsAppService->completedUrl($order);
+        $waReminderUrl = $this->whatsAppService->reminderUrl($order);
+        $waStatusText = $this->whatsAppService->statusMessage($order);
+        $waReminderText = $this->whatsAppService->reminderMessage($order);
         $waCompletedText = $this->whatsAppService->completedMessage($order);
 
         return view('orders.show', compact(
@@ -210,8 +212,9 @@ class OrderController extends Controller
     {
         $this->authorize('update', $order);
         $storeOwnerId = auth()->user()->getStoreOwnerId();
-        $customers    = Customer::where('user_id', $storeOwnerId)->orderBy('name')->get();
-        $statuses     = Order::STATUSES;
+        $customers = Customer::where('user_id', $storeOwnerId)->orderBy('name')->get();
+        $statuses = Order::STATUSES;
+
         return view('orders.edit', compact('order', 'customers', 'statuses'));
     }
 
@@ -222,23 +225,23 @@ class OrderController extends Controller
         $storeOwnerId = auth()->user()->getStoreOwnerId();
 
         $validated = $request->validate([
-            'customer_id'    => [
+            'customer_id' => [
                 'required',
                 Rule::exists('customers', 'id')->where('user_id', $storeOwnerId),
             ],
-            'name'           => 'required|string|max:255',
-            'description'    => 'nullable|string',
-            'quantity'       => 'required|integer|min:1',
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'quantity' => 'required|integer|min:1',
             'price_per_unit' => 'required|numeric|min:0',
-            'total_amount'   => 'required|numeric|min:0',
-            'deadline'       => 'nullable|date',
-            'status'         => 'required|in:' . implode(',', array_keys(Order::STATUSES)),
-            'notes'          => 'nullable|string',
+            'total_amount' => 'required|numeric|min:0',
+            'deadline' => 'nullable|date',
+            'status' => 'required|in:'.implode(',', array_keys(Order::STATUSES)),
+            'notes' => 'nullable|string',
             'size_breakdown' => 'nullable|array',
         ]);
 
         // Proteksi integritas keuangan: jika staf tidak memiliki hak akses finansial, abaikan perubahan nominal harga
-        if (!auth()->user()->canViewFinances()) {
+        if (! auth()->user()->canViewFinances()) {
             unset($validated['price_per_unit'], $validated['total_amount']);
         }
 
@@ -246,18 +249,18 @@ class OrderController extends Controller
         if (isset($validated['size_breakdown'])) {
             $cleanSizes = [];
             foreach ($validated['size_breakdown'] as $sizeName => $qty) {
-                $qty = (int)$qty;
-                if ($qty > 0 && !empty(trim($sizeName))) {
+                $qty = (int) $qty;
+                if ($qty > 0 && ! empty(trim($sizeName))) {
                     $cleanSizes[trim($sizeName)] = $qty;
                 }
             }
-            $validated['size_breakdown'] = !empty($cleanSizes) ? $cleanSizes : null;
+            $validated['size_breakdown'] = ! empty($cleanSizes) ? $cleanSizes : null;
         }
 
         $order->update($validated);
 
         return redirect()->route('orders.show', $order)
-            ->with('success', 'Pesanan berhasil diperbarui.');
+            ->with('success', __('Pesanan berhasil diperbarui.'));
     }
 
     public function updateStatus(Request $request, Order $order)
@@ -265,21 +268,21 @@ class OrderController extends Controller
         $this->authorize('update', $order);
 
         $validated = $request->validate([
-            'status' => 'required|in:' . implode(',', array_keys(Order::STATUSES)),
+            'status' => 'required|in:'.implode(',', array_keys(Order::STATUSES)),
         ]);
 
         $order->update($validated);
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
-                'success'      => true,
-                'status'       => $order->status,
-                'status_label' => Order::STATUSES[$order->status],
-                'message'      => "Status berubah menjadi: " . Order::STATUSES[$validated['status']],
+                'success' => true,
+                'status' => $order->status,
+                'status_label' => __(Order::STATUSES[$order->status]),
+                'message' => __('Status berubah menjadi: :status', ['status' => __(Order::STATUSES[$validated['status']])]),
             ]);
         }
 
-        return back()->with('success', "Status berubah menjadi: " . Order::STATUSES[$validated['status']]);
+        return back()->with('success', __('Status berubah menjadi: :status', ['status' => __(Order::STATUSES[$validated['status']])]));
     }
 
     public function invoice(Order $order)
@@ -296,12 +299,12 @@ class OrderController extends Controller
 
         // Hapus file desain dari storage
         foreach ($order->files as $file) {
-            \Storage::disk('public')->delete($file->file_path);
+            $this->secureFiles->delete($file->file_path);
         }
 
         $order->delete();
 
         return redirect()->route('orders.index')
-            ->with('success', 'Pesanan berhasil dihapus.');
+            ->with('success', __('Pesanan berhasil dihapus.'));
     }
 }

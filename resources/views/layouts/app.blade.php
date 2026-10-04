@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="{{ app()->getLocale() }}">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <meta name="referrer" content="no-referrer-when-downgrade">
 
-        <title>{{ isset($title) ? $title . ' — OrderFlow' : 'OrderFlow — Kelola Pesanan WhatsApp' }}</title>
+        <title>{{ isset($title) ? $title . ' — OrderFlow' : __('OrderFlow — Kelola Pesanan WhatsApp') }}</title>
         <x-favicon />
 
         <!-- Inter Font -->
@@ -45,10 +45,10 @@
                                     <svg class="w-3.5 h-3.5" width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/>
                                     </svg>
-                                    Kirim via WhatsApp
+                                    {{ __('Kirim via WhatsApp') }}
                                 </a>
                             @endif
-                            <button type="button" @click="show = false" class="p-1 text-emerald-500 hover:text-emerald-700 rounded-lg hover:bg-emerald-100 transition" title="Tutup">
+                            <button type="button" @click="show = false" class="p-1 text-emerald-500 hover:text-emerald-700 rounded-lg hover:bg-emerald-100 transition" title="{{ __('Tutup') }}">
                                 <svg class="w-4 h-4" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                 </svg>
@@ -67,7 +67,7 @@
                             </div>
                             <span class="font-medium text-red-900">{{ session('error') }}</span>
                         </div>
-                        <button type="button" @click="show = false" class="p-1 text-red-500 hover:text-red-700 rounded-lg hover:bg-red-100 transition shrink-0 ms-3" title="Tutup">
+                        <button type="button" @click="show = false" class="p-1 text-red-500 hover:text-red-700 rounded-lg hover:bg-red-100 transition shrink-0 ms-3" title="{{ __('Tutup') }}">
                             <svg class="w-4 h-4" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                             </svg>
@@ -77,7 +77,7 @@
 
                 @if ($errors->any())
                     <div class="mb-3 px-4 py-3 text-sm text-red-800 bg-red-50 border border-red-200 rounded-xl shadow-xs" role="alert">
-                        <p class="font-semibold mb-1.5">Harap periksa kembali formulir Anda:</p>
+                        <p class="font-semibold mb-1.5">{{ __('Harap periksa kembali formulir Anda:') }}</p>
                         <ul class="list-disc list-inside space-y-0.5 text-red-700">
                             @foreach ($errors->all() as $error)
                                 <li>{{ $error }}</li>
@@ -102,7 +102,11 @@
 
         <!-- Footer -->
         <footer class="border-t border-gray-200 bg-white py-4 text-center text-xs text-gray-400">
-            <strong class="text-gray-500">OrderFlow</strong> &copy; {{ date('Y') }} — Solusi Kelola Pesanan Custom &amp; WhatsApp
+            <strong class="text-gray-500">OrderFlow</strong> &copy; {{ date('Y') }} — {{ __('Solusi Kelola Pesanan Custom & WhatsApp') }}
+            <span class="mx-1.5">·</span>
+            <a href="{{ route('terms') }}" class="hover:text-indigo-600">{{ __('Syarat') }}</a>
+            <span class="mx-1">·</span>
+            <a href="{{ route('privacy') }}" class="hover:text-indigo-600">{{ __('Privasi') }}</a>
         </footer>
 
         <!-- Floating Toast Notification (Always Visible on Action) -->
@@ -127,7 +131,7 @@
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-1.5">
                         <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
-                        <p class="text-[11px] font-bold uppercase tracking-wider text-emerald-700">Berhasil Disimpan</p>
+                        <p class="text-[11px] font-bold uppercase tracking-wider text-emerald-700">{{ __('Berhasil Disimpan') }}</p>
                     </div>
                     <p class="text-xs font-semibold text-gray-900 mt-1 leading-snug">{{ session('success') }}</p>
                     @if (session('wa_status_url') || session('wa_payment_url'))
@@ -140,12 +144,12 @@
                                 <svg class="w-3.5 h-3.5" width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/>
                                 </svg>
-                                <span>Kirim via WhatsApp</span>
+                                <span>{{ __('Kirim via WhatsApp') }}</span>
                             </a>
                         </div>
                     @endif
                 </div>
-                <button type="button" @click="show = false" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition shrink-0" title="Tutup">
+                <button type="button" @click="show = false" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition shrink-0" title="{{ __('Tutup') }}">
                     <svg class="w-4 h-4" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>

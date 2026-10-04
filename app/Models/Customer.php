@@ -17,6 +17,7 @@ class Customer extends Model
         'phone',
         'address',
         'notes',
+        'demo_batch_id',
     ];
 
     public function user(): BelongsTo
@@ -29,6 +30,11 @@ class Customer extends Model
         return $this->hasMany(Order::class);
     }
 
+    public function quotations(): HasMany
+    {
+        return $this->hasMany(Quotation::class);
+    }
+
     /**
      * Format nomor WhatsApp untuk link wa.me
      */
@@ -36,8 +42,9 @@ class Customer extends Model
     {
         $phone = preg_replace('/\D/', '', $this->phone ?? '');
         if (str_starts_with($phone, '0')) {
-            $phone = '62' . substr($phone, 1);
+            $phone = '62'.substr($phone, 1);
         }
+
         return $phone;
     }
 }

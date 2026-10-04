@@ -25,7 +25,7 @@ class GoogleAuthController extends Controller
         try {
             return Socialite::driver('google')->redirect();
         } catch (Throwable $e) {
-            return redirect()->route('login')->with('error', 'Konfigurasi Google OAuth belum lengkap: ' . $e->getMessage());
+            return redirect()->route('login')->with('error', __('Konfigurasi Google OAuth belum lengkap: :message', ['message' => $e->getMessage()]));
         }
     }
 
@@ -36,17 +36,17 @@ class GoogleAuthController extends Controller
     {
         // Pengguna membatalkan izin atau terjadi error pada Google OAuth
         if ($request->has('error')) {
-            return redirect()->route('login')->with('error', 'Login dengan Google dibatalkan.');
+            return redirect()->route('login')->with('error', __('Login dengan Google dibatalkan.'));
         }
 
         try {
             $googleUser = Socialite::driver('google')->user();
         } catch (Throwable $e) {
-            return redirect()->route('login')->with('error', 'Gagal memproses autentikasi Google: ' . $e->getMessage());
+            return redirect()->route('login')->with('error', __('Gagal memproses autentikasi Google: :message', ['message' => $e->getMessage()]));
         }
 
-        if (!$googleUser || !$googleUser->getEmail()) {
-            return redirect()->route('login')->with('error', 'Email tidak ditemukan dari akun Google.');
+        if (! $googleUser || ! $googleUser->getEmail()) {
+            return redirect()->route('login')->with('error', __('Email tidak ditemukan dari akun Google.'));
         }
 
         // 1. Cek apakah user dengan google_id ini sudah terdaftar
@@ -59,6 +59,7 @@ class GoogleAuthController extends Controller
             }
 
             Auth::login($user, remember: true);
+
             return redirect()->intended(route('dashboard'));
         }
 
@@ -68,37 +69,42 @@ class GoogleAuthController extends Controller
         if ($existingUser) {
             // Hubungkan akun Google ke user yang sudah ada
             $existingUser->update([
-                'google_id'         => $googleUser->getId(),
-                'avatar'            => $existingUser->avatar ?: $googleUser->getAvatar(),
+                'google_id' => $googleUser->getId(),
+                'avatar' => $existingUser->avatar ?: $googleUser->getAvatar(),
                 'email_verified_at' => $existingUser->email_verified_at ?? now(),
             ]);
 
             Auth::login($existingUser, remember: true);
-            return redirect()->intended(route('dashboard'))->with('success', 'Akun Google berhasil dihubungkan ke akun OrderFlow Anda!');
+
+            return redirect()->intended(route('dashboard'))->with('success', __('Akun Google berhasil dihubungkan ke akun OrderFlow Anda!'));
         }
 
         // 3. User baru -> buat akun Owner baru dan berikan Free Trial 14 hari
         $newUser = User::create([
-            'name'              => $googleUser->getName() ?: ($googleUser->getNickname() ?: 'Pengguna Google'),
-            'email'             => $googleUser->getEmail(),
-            'google_id'         => $googleUser->getId(),
-            'avatar'            => $googleUser->getAvatar(),
-            'password'          => Hash::make(Str::random(32)),
-            'role'              => User::ROLE_OWNER,
-            'business_name'     => null,
+            'name' => $googleUser->getName() ?: ($googleUser->getNickname() ?: 'Pengguna Google'),
+            'email' => $googleUser->getEmail(),
+            'google_id' => $googleUser->getId(),
+            'avatar' => $googleUser->getAvatar(),
+            'password' => Hash::make(Str::random(32)),
+            'role' => User::ROLE_OWNER,
+            'business_name' => null,
             'email_verified_at' => now(),
+            'locale' => $request->session()->get('locale', config('app.locale')),
+            'terms_accepted_at' => now(),
+            'terms_version' => config('orderflow.legal.terms_version'),
+            'privacy_version' => config('orderflow.legal.privacy_version'),
         ]);
 
         // Berikan paket uji coba gratis (Free Trial 14 Hari Pro)
         $defaultPlan = Plan::where('slug', 'pro')->first() ?? Plan::first();
         if ($defaultPlan) {
             Subscription::create([
-                'user_id'       => $newUser->id,
-                'plan_id'       => $defaultPlan->id,
-                'status'        => Subscription::STATUS_TRIALING,
-                'starts_at'     => now(),
+                'user_id' => $newUser->id,
+                'plan_id' => $defaultPlan->id,
+                'status' => Subscription::STATUS_TRIALING,
+                'starts_at' => now(),
                 'trial_ends_at' => now()->addDays(14),
-                'notes'         => 'Free trial 14 hari saat registrasi via Google',
+                'notes' => 'Free trial 14 hari saat registrasi via Google',
             ]);
         }
 
@@ -106,6 +112,6 @@ class GoogleAuthController extends Controller
 
         Auth::login($newUser, remember: true);
 
-        return redirect()->intended(route('dashboard'))->with('success', 'Selamat datang di OrderFlow! Akun Anda telah aktif dengan uji coba Pro 14 hari.');
+        return redirect()->route('onboarding.show')->with('success', __('Selamat datang di OrderFlow! Akun Anda telah aktif dengan uji coba Pro 14 hari.'));
     }
 }

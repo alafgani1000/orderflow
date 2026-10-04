@@ -17,26 +17,28 @@ class Payment extends Model
         'payment_date',
         'method',
         'notes',
+        'demo_batch_id',
     ];
 
     protected $casts = [
         'payment_date' => 'date',
-        'amount'       => 'decimal:2',
+        'amount' => 'decimal:2',
     ];
 
     const TYPE_PAYMENT = 'payment';
-    const TYPE_REFUND  = 'refund';
+
+    const TYPE_REFUND = 'refund';
 
     const TYPES = [
         'payment' => 'Pembayaran Masuk',
-        'refund'  => 'Pengembalian Dana (Refund)',
+        'refund' => 'Pengembalian Dana (Refund)',
     ];
 
     const METHODS = [
-        'cash'     => 'Cash / Tunai',
+        'cash' => 'Cash / Tunai',
         'transfer' => 'Transfer Bank',
-        'qris'     => 'QRIS',
-        'other'    => 'Lainnya',
+        'qris' => 'QRIS',
+        'other' => 'Lainnya',
     ];
 
     public function isRefund(): bool

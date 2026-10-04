@@ -12,18 +12,18 @@ class OrderNumberService
      */
     public function generate(int $userId): string
     {
-        $last = Order::where('user_id', $userId)
-            ->orderByDesc('id')
-            ->value('order_number');
+        $highestSequence = Order::where('user_id', $userId)
+            ->where('order_number', 'like', 'ORD-%')
+            ->pluck('order_number')
+            ->map(function (string $orderNumber): int {
+                return preg_match('/^ORD-(\d+)$/i', $orderNumber, $matches)
+                    ? (int) $matches[1]
+                    : 0;
+            })
+            ->max() ?? 0;
 
-        if ($last) {
-            // Ambil angka dari format ORD-XXXX
-            $number = (int) substr($last, 4);
-            $next   = $number + 1;
-        } else {
-            $next = 1;
-        }
+        $next = $highestSequence + 1;
 
-        return 'ORD-' . str_pad($next, 4, '0', STR_PAD_LEFT);
+        return 'ORD-'.str_pad($next, 4, '0', STR_PAD_LEFT);
     }
 }
